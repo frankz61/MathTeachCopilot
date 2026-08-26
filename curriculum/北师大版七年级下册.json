@@ -1,0 +1,329 @@
+{
+  "textbook": "北师大版",
+  "grade": "七年级下册",
+  "source": "北京师范大学出版社(北师大版)初中数学(2024年版新教材,依据《义务教育数学课程标准(2022年版)》)（经 MathMate 知识图谱 v2.0 导入）",
+  "nodes": [
+    {
+      "id": "ch-07",
+      "title": "第7章 整式的乘除",
+      "knowledgePoints": [
+        {
+          "id": "tp-07-01",
+          "title": "幂的乘除",
+          "standard": "",
+          "commonErrors": [
+            "a³·a²=a⁶ 或 (a³)²=a⁵；成因：同底数幂相乘与幂的乘方混淆；纠正：相乘指数相加,乘方指数相乘"
+          ],
+          "desc": "同底数幂乘除、幂的乘方、积的乘方、负整数指数幂",
+          "examWeight": "high"
+        },
+        {
+          "id": "tp-07-02",
+          "title": "整式的乘法",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "单项式×单项式/多项式、多项式×多项式",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-03-04",
+            "tp-07-01"
+          ]
+        },
+        {
+          "id": "tp-07-03",
+          "title": "乘法公式",
+          "standard": "",
+          "commonErrors": [
+            "(a±b)²=a²±b²；成因：完全平方公式漏中间项；纠正：(a±b)²=a²±2ab+b²,中间项不可丢"
+          ],
+          "desc": "平方差公式、完全平方公式",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-07-02"
+          ]
+        },
+        {
+          "id": "tp-07-04",
+          "title": "整式的除法",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "单项式除以单项式、多项式除以单项式",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-07-02"
+          ]
+        }
+      ],
+      "desc": "幂的运算、整式乘法、乘法公式与整式除法",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-08",
+      "title": "第8章 相交线与平行线",
+      "knowledgePoints": [
+        {
+          "id": "tp-08-01",
+          "title": "对顶角与邻补角",
+          "standard": "",
+          "commonErrors": [
+            "把邻补角当作对顶角认为相等；成因：图形位置分辨不清；纠正：对顶角无公共边且相等,邻补角有公共边且互补"
+          ],
+          "desc": "两条直线的位置关系,对顶角相等",
+          "examWeight": "high"
+        },
+        {
+          "id": "tp-08-02",
+          "title": "垂线与点到直线的距离",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "垂直的概念、垂线段最短",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-08-01"
+          ]
+        },
+        {
+          "id": "tp-08-03",
+          "title": "同位角、内错角、同旁内角",
+          "standard": "",
+          "commonErrors": [
+            "同位角、内错角识别为'同侧同位置'；成因：按字面而非截线判断；纠正：先找截线,再看两角位于截线同旁/两旁、被截直线同侧/异侧"
+          ],
+          "desc": "两直线被第三条所截(三线八角)",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-08-01"
+          ]
+        },
+        {
+          "id": "tp-08-04",
+          "title": "平行线的判定",
+          "standard": "",
+          "commonErrors": [
+            "用'两直线平行,同位角相等'来判定平行；成因：性质与判定混用循环论证；纠正：由角的关系推平行是判定,由平行推角的关系是性质"
+          ],
+          "desc": "探索直线平行的条件,平行公理及推论",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-08-03"
+          ]
+        },
+        {
+          "id": "tp-08-05",
+          "title": "平行线的性质",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "两线平行则同位角相等等",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-08-04"
+          ]
+        }
+      ],
+      "desc": "两条直线的位置关系、平行线的判定与性质",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-09",
+      "title": "第9章 概率初步",
+      "knowledgePoints": [
+        {
+          "id": "tp-09-01",
+          "title": "感受可能性",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "随机事件、必然事件与不可能事件",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-09-02",
+          "title": "频率的稳定性",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "频率稳定于概率的直觉",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-06-01",
+            "tp-09-01"
+          ]
+        },
+        {
+          "id": "tp-09-03",
+          "title": "等可能事件的概率",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "概率定义 P(A)=m/n 及简单计算",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-09-02"
+          ]
+        }
+      ],
+      "desc": "随机事件、频率的稳定性与等可能事件概率(新版由九上移至七下)",
+      "examWeight": "medium"
+    },
+    {
+      "id": "ch-10",
+      "title": "第10章 三角形",
+      "knowledgePoints": [
+        {
+          "id": "tp-10-01",
+          "title": "认识三角形",
+          "standard": "",
+          "commonErrors": [
+            "等腰三角形两边长4和9直接算周长；成因：忘检验三边关系；纠正：腰为4时4+4<9 不成立应舍去,需分类讨论并检验两边之和大于第三边"
+          ],
+          "desc": "构成要素、分类、稳定性与三边关系",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-10-02",
+          "title": "三角形的内角和与外角",
+          "standard": "",
+          "commonErrors": [
+            "外角定理漏'不相邻',认为所有外角相等；成因：定理条件记忆不全；纠正：外角等于与它不相邻的两个内角之和;各外角相等需额外条件"
+          ],
+          "desc": "内角和180度、外角定理(直观认识,证明在八下)",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-08-05",
+            "tp-10-01"
+          ]
+        },
+        {
+          "id": "tp-10-03",
+          "title": "三角形的高、中线与角平分线",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "三条重要线段",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-10-01"
+          ]
+        },
+        {
+          "id": "tp-10-04",
+          "title": "全等三角形的概念与性质",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "对应边、对应角相等",
+          "examWeight": "high"
+        },
+        {
+          "id": "tp-10-05",
+          "title": "三角形全等的判定",
+          "standard": "",
+          "commonErrors": [
+            "用 SSA 判定全等;对应顶点不按顺序写；成因：判定条件记忆不准；纠正：SSA 不能判定全等,可举反例;书写对应顶点按同一顺序"
+          ],
+          "desc": "SSS/SAS/ASA/AAS,直角三角形全等(HL)在八下学习",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-10-04"
+          ]
+        },
+        {
+          "id": "tp-10-06",
+          "title": "利用三角形全等测距离",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "全等的实际应用(不可直接测量的距离)",
+          "examWeight": "low",
+          "prerequisites": [
+            "tp-10-05"
+          ]
+        }
+      ],
+      "desc": "认识三角形与全等三角形(北师大将全等置于七下,证明深化在八下)",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-11",
+      "title": "第11章 图形的轴对称",
+      "knowledgePoints": [
+        {
+          "id": "tp-11-01",
+          "title": "轴对称与轴对称图形",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "对称轴与轴对称性质、画轴对称图形",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-11-02",
+          "title": "线段的垂直平分线",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "简单的轴对称图形:垂直平分线上的点到两端距离相等",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-11-01"
+          ]
+        },
+        {
+          "id": "tp-11-03",
+          "title": "角平分线的性质",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "角平分线上的点到两边距离相等(判定与证明在八下)",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-11-01"
+          ]
+        }
+      ],
+      "desc": "轴对称性质与简单轴对称图形(判定与证明在八下)",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-12",
+      "title": "第12章 变量之间的关系",
+      "knowledgePoints": [
+        {
+          "id": "tp-12-01",
+          "title": "现实中的变量",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "常量与变量、自变量与因变量",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-12-02",
+          "title": "用表格表示变量之间的关系",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "从表格读取变化规律",
+          "examWeight": "low",
+          "prerequisites": [
+            "tp-12-01"
+          ]
+        },
+        {
+          "id": "tp-12-03",
+          "title": "用关系式表示变量之间的关系",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "建立关系式并求值",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-03-02",
+            "tp-12-02"
+          ]
+        },
+        {
+          "id": "tp-12-04",
+          "title": "用图象表示变量之间的关系",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "图象信息的读取,函数图象的先行经验",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-12-03"
+          ]
+        }
+      ],
+      "desc": "常量变量与三种表示方法(北师大函数思想的先行章节)",
+      "examWeight": "medium"
+    }
+  ]
+}

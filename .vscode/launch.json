@@ -1,0 +1,126 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // 断点打在 src/main/*.ts 和 src/preload/*.ts 里。
+      // electron-vite 本身是个 node 进程，真正的 Electron 主进程是它的子进程，
+      // 所以必须开 autoAttachChildProcesses，否则断点永远是灰的。
+      "name": "主进程",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/desktop",
+      "runtimeExecutable": "${workspaceFolder}/apps/desktop/node_modules/.bin/electron-vite",
+      "windows": {
+        "runtimeExecutable": "${workspaceFolder}/apps/desktop/node_modules/.bin/electron-vite.CMD"
+      },
+      "args": ["--sourcemap", "--remoteDebuggingPort=9455"],
+      "autoAttachChildProcesses": true,
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/apps/desktop/out/**/*.js"],
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      // 单独用它调 UI 时，要先跑「主进程」把应用起起来。
+      // 一般直接用下面的复合配置「全栈调试」更省事。
+      "name": "渲染进程",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9455,
+      "webRoot": "${workspaceFolder}/apps/desktop/src/renderer",
+      "timeout": 30000,
+      // Vite 的 sourcemap 不是 webpack 那套：dev server 上的源码路径是
+      // http://localhost:5173/src/...，靠 webRoot 就能映射回本地文件
+      "sourceMapPathOverrides": {
+        "/@fs/*": "*"
+      }
+    },
+    {
+      // 端到端 spike：Agent 出题 → 强制验算 → 落盘 → 导出 docx。
+      // 想看 Agent 每一步在干什么，断点打在 src/main/agent.ts 的 onEvent 分支里。
+      "name": "spike（端到端）",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/desktop",
+      "program": "${workspaceFolder}/apps/desktop/scripts/spike.ts",
+      "runtimeArgs": ["--import", "tsx"],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      // 不需要 API key。只验证「客户端能不能拉起 Python 工具进程」。
+      "name": "工具链自检",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/desktop",
+      "program": "${workspaceFolder}/apps/desktop/scripts/check-toolchain.ts",
+      "runtimeArgs": ["--import", "tsx"],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Python：当前测试文件",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["${file}", "-v"],
+      "cwd": "${workspaceFolder}/tools-py",
+      "python": "${workspaceFolder}/tools-py/.venv/Scripts/python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "Python：全部测试",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests", "-v"],
+      "cwd": "${workspaceFolder}/tools-py",
+      "python": "${workspaceFolder}/tools-py/.venv/Scripts/python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      // 重新生成 examples/ 里的种子题目。每道题都会真跑一次验算器，
+      // 想看 verify_solve 内部就把断点打在 mathtools/verify.py。
+      "name": "Python：重建示例课时",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/tools-py/seed_example.py",
+      "cwd": "${workspaceFolder}/tools-py",
+      "python": "${workspaceFolder}/tools-py/.venv/Scripts/python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      // 调试「被 Agent 驱动时」的工具代码。工具进程是 Electron 拉起来的子进程，
+      // 没法从这里启动，只能让它监听、由调试器附加上去。用法：
+      //   1. 先设环境变量 MTC_DEBUGPY=1（写进 .env 即可）
+      //   2. 启动「主进程」或跑 spike
+      //   3. 再选这个配置附加，断点打在 mathtools/ 下
+      // 想在工具进程启动的第一行就断住，把 MTC_DEBUGPY 改成 wait，
+      // 同时设 MCP_TIMEOUT=600000，否则 MCP 握手会先超时。
+      "name": "Python：附加到工具进程",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": { "host": "127.0.0.1", "port": 5679 },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/tools-py",
+          "remoteRoot": "${workspaceFolder}/tools-py"
+        }
+      ],
+      "justMyCode": false
+    }
+  ],
+  "compounds": [
+    {
+      // 日常调 UI 用这个：主进程和渲染进程一起断。
+      "name": "全栈调试（主进程 + 渲染进程）",
+      "configurations": ["主进程", "渲染进程"],
+      "stopAll": true
+    }
+  ]
+}

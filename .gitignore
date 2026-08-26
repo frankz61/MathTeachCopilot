@@ -1,0 +1,46 @@
+# Node / Electron
+node_modules/
+dist/
+out/
+.vite/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
+*.pyc
+*.pyo
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# 随包分发的二进制，不进版本库，见 vendor/README.md
+vendor/pandoc/
+vendor/python/
+# 准备脚本缓存的 embeddable zip，重跑时省一次下载
+vendor/*.zip
+
+# 密钥。仓库里只留 .env.example
+.env
+.env.local
+.env.*.local
+
+# 打包产物
+apps/desktop/dist/
+apps/desktop/build/
+
+# OS / 编辑器
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+
+# 日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

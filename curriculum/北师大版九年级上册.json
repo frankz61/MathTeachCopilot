@@ -1,0 +1,317 @@
+{
+  "textbook": "北师大版",
+  "grade": "九年级上册",
+  "source": "北京师范大学出版社(北师大版)初中数学(2024年版新教材,依据《义务教育数学课程标准(2022年版)》)（经 MathMate 知识图谱 v2.0 导入）",
+  "nodes": [
+    {
+      "id": "ch-26",
+      "title": "第26章 特殊平行四边形",
+      "knowledgePoints": [
+        {
+          "id": "tp-26-01",
+          "title": "菱形的性质与判定",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "四边相等、对角线互相垂直",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-25-01"
+          ]
+        },
+        {
+          "id": "tp-26-02",
+          "title": "矩形的性质与判定",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "四角为直角、对角线相等",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-25-01"
+          ]
+        },
+        {
+          "id": "tp-26-03",
+          "title": "正方形的性质与判定",
+          "standard": "",
+          "commonErrors": [
+            "菱形、正方形面积忘记对角线公式适用范围；成因：对角线乘积一半仅适用于对角线互相垂直的四边形；纠正：菱形/正方形可用 S=½d₁d₂,矩形不适用"
+          ],
+          "desc": "既是矩形又是菱形",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-26-01",
+            "tp-26-02"
+          ]
+        }
+      ],
+      "desc": "菱形、矩形、正方形的性质与判定",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-27",
+      "title": "第27章 一元二次方程",
+      "knowledgePoints": [
+        {
+          "id": "tp-27-01",
+          "title": "一元二次方程的概念",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "一般形式 ax²+bx+c=0 (a≠0)",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-27-02",
+          "title": "配方法",
+          "standard": "",
+          "commonErrors": [
+            "配方时一边加常数另一边漏加;二次项系数不先化为1；成因：等式性质与配方步骤；纠正：先化二次项系数为1,再两边同加一次项系数一半的平方"
+          ],
+          "desc": "配成完全平方求解",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-07-03",
+            "tp-27-01"
+          ]
+        },
+        {
+          "id": "tp-27-03",
+          "title": "公式法与根的判别式",
+          "standard": "",
+          "commonErrors": [
+            "用判别式时忘 a≠0;一元二次方程条件忽略；成因：概念前提；纠正：含参数方程先保证二次项系数非零再讨论 Δ"
+          ],
+          "desc": "求根公式、Δ 与根的个数",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-14-02",
+            "tp-27-02"
+          ]
+        },
+        {
+          "id": "tp-27-04",
+          "title": "因式分解法",
+          "standard": "",
+          "commonErrors": [
+            "方程两边同除以 (x-2) 丢根；成因：除式可能为零；纠正：移项后因式分解,不能随意约去含未知数的因式"
+          ],
+          "desc": "降次为两个一元一次方程",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-23-03",
+            "tp-27-03"
+          ]
+        },
+        {
+          "id": "tp-27-05",
+          "title": "根与系数的关系(选学)",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "韦达定理",
+          "examWeight": "optional",
+          "prerequisites": [
+            "tp-27-03"
+          ]
+        },
+        {
+          "id": "tp-27-06",
+          "title": "一元二次方程的应用",
+          "standard": "",
+          "commonErrors": [
+            "增长率问题 a(1+x)²=b 中指数漏写2；成因：增长过程段数数错；纠正：两段增长就是平方,n 段就是 n 次方,下降用减"
+          ],
+          "desc": "增长率、面积、利润问题",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-27-04"
+          ]
+        }
+      ],
+      "desc": "配方法、公式法、因式分解法",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-28",
+      "title": "第28章 概率的进一步认识",
+      "knowledgePoints": [
+        {
+          "id": "tp-28-01",
+          "title": "用树状图或表格求概率",
+          "standard": "",
+          "commonErrors": [
+            "树状图列表时漏等可能;放回与不放回混淆；成因：概率模型条件；纠正：每次抽取必须等可能;放回与不放回的样本空间不同"
+          ],
+          "desc": "两步及以上试验的列举法(列表法与树状图法)",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-09-03"
+          ]
+        },
+        {
+          "id": "tp-28-02",
+          "title": "用频率估计概率",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "频率的稳定性、用试验频率估计复杂事件概率",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-09-02"
+          ]
+        }
+      ],
+      "desc": "树状图表格求概率与用频率估计概率(深化七下概率初步)",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-29",
+      "title": "第29章 图形的相似",
+      "knowledgePoints": [
+        {
+          "id": "tp-29-01",
+          "title": "成比例线段",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "比例的性质、黄金分割",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-29-02",
+          "title": "平行线分线段成比例",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "平行线分线段成比例的基本事实与推论",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-08-05",
+            "tp-29-01"
+          ]
+        },
+        {
+          "id": "tp-29-03",
+          "title": "相似多边形",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "相似多边形的定义与性质",
+          "examWeight": "low",
+          "prerequisites": [
+            "tp-29-02"
+          ]
+        },
+        {
+          "id": "tp-29-04",
+          "title": "相似三角形的判定",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "平行、两角、两边夹角、三边判定(判定定理的证明为选学)",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-10-05",
+            "tp-29-03"
+          ]
+        },
+        {
+          "id": "tp-29-05",
+          "title": "相似三角形的性质",
+          "standard": "",
+          "commonErrors": [
+            "面积比等于相似比；成因：比例关系记错；纠正：相似比为k时周长比是k,面积比是k²"
+          ],
+          "desc": "对应边比、周长比、面积比,利用相似测高",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-29-04"
+          ]
+        },
+        {
+          "id": "tp-29-06",
+          "title": "图形的位似",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "位似作图与坐标变化规律",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-15-02",
+            "tp-29-05"
+          ]
+        }
+      ],
+      "desc": "成比例线段、相似三角形的判定性质与位似",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-30",
+      "title": "第30章 投影与视图",
+      "knowledgePoints": [
+        {
+          "id": "tp-30-01",
+          "title": "投影",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "平行投影与中心投影",
+          "examWeight": "low",
+          "prerequisites": [
+            "tp-01-02"
+          ]
+        },
+        {
+          "id": "tp-30-02",
+          "title": "视图",
+          "standard": "",
+          "commonErrors": [
+            "三视图不满足长对正高平齐宽相等;遮挡轮廓虚线漏画；成因：投影规则；纠正：主俯长对正、主左高平齐、俯左宽相等;看不见的轮廓画虚线"
+          ],
+          "desc": "主视图、左视图、俯视图(三视图)",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-30-01"
+          ]
+        }
+      ],
+      "desc": "投影与三视图",
+      "examWeight": "low"
+    },
+    {
+      "id": "ch-31",
+      "title": "第31章 反比例函数",
+      "knowledgePoints": [
+        {
+          "id": "tp-31-01",
+          "title": "反比例函数的概念",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "y=k/x (k≠0)",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-16-01",
+            "tp-24-01"
+          ]
+        },
+        {
+          "id": "tp-31-02",
+          "title": "反比例函数的图象与性质",
+          "standard": "",
+          "commonErrors": [
+            "说'反比例函数 y 随 x 增大而减小'不加限定;k几何意义忘绝对值；成因：双曲线两支分开的特性和 k 符号；纠正：增减性必须加'在每一支上且k>0';矩形面积=|k|"
+          ],
+          "desc": "双曲线、k 的几何意义",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-31-01"
+          ]
+        },
+        {
+          "id": "tp-31-03",
+          "title": "反比例函数的应用",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "与几何、物理量的综合",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-31-02"
+          ]
+        }
+      ],
+      "desc": "双曲线的图象与性质",
+      "examWeight": "high"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "安装依赖（Node + Python）",
+      "type": "shell",
+      "command": "pnpm install && uv sync --project tools-py",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Python 测试",
+      "type": "shell",
+      "command": "uv run --project tools-py pytest tools-py/tests -q",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "类型检查",
+      "type": "shell",
+      "command": "pnpm -r typecheck",
+      "group": "build",
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "文件监听自检",
+      "type": "shell",
+      "command": "pnpm check:watch",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "建课时自检",
+      "type": "shell",
+      "command": "pnpm check:lesson",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "工具链自检",
+      "type": "shell",
+      "command": "pnpm check",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "端到端 spike",
+      "type": "shell",
+      "command": "pnpm spike",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "重建示例课时",
+      "type": "shell",
+      "command": "pnpm seed",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "把示例拷进教师工作区",
+      "type": "shell",
+      "command": "pnpm seed && cp -r examples/* \"$HOME/MathTeachCopilot/\"",
+      "windows": {
+        "command": "pnpm seed; New-Item -ItemType Directory -Force \"$env:USERPROFILE\\MathTeachCopilot\" | Out-Null; Copy-Item -Recurse -Force examples\\* \"$env:USERPROFILE\\MathTeachCopilot\\\""
+      },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "全量校验（提交前跑一遍）",
+      "dependsOrder": "sequence",
+      "dependsOn": ["类型检查", "Python 测试", "工具链自检", "文件监听自检", "建课时自检"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    }
+  ]
+}

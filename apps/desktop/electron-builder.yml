@@ -1,0 +1,71 @@
+# 打包配置。跑法：pnpm dist
+#
+# 前置：先跑 pnpm vendor:python 准备随包分发的 Python 运行时，
+# 并把 pandoc.exe 放在 vendor/pandoc/ 下（见 vendor/README.md）。
+
+appId: top.frankzhangs.mathteachcopilot
+productName: MathTeachCopilot
+copyright: MathTeachCopilot
+
+directories:
+  output: dist
+  buildResources: build
+
+# asar 关掉。
+#
+# 不是体积考虑（体积不是约束），是可排查性：
+#
+# 1. SDK 带一个 315 MB 的 claude.exe，塞进 asar 里没法直接执行，得靠
+#    asarUnpack 和 Electron 的路径改写。那条链路一旦出问题，报出来的错
+#    是「spawn ENOENT」，完全指不到真正的原因。
+# 2. 和 vendor/ 的选型同一个理由（见 docs/architecture.md 第五节）：
+#    装完就是一个普通目录，坏了能 cd 进去自己跑一遍。
+asar: false
+
+files:
+  - out/**/*
+  - package.json
+  - '!**/*.map'
+  - '!**/*.ts'
+
+# 这三样不进 app 目录，放 resources/ 下。
+# 主进程用 process.resourcesPath 找它们，见 src/main/mcp.ts 和 index.ts。
+extraResources:
+  - from: ../../vendor
+    to: vendor
+    filter:
+      - '**/*'
+      # 准备脚本缓存的 embeddable zip，只是为了重跑时不再下载一次，不该进安装包
+      - '!*.zip'
+  - from: ../../tools-py
+    to: tools-py
+    filter:
+      - '**/*'
+      # .venv 是开发期的虚拟环境，几百兆且完全没用——打包形态走 vendor/python
+      - '!.venv/**'
+      - '!**/__pycache__/**'
+      - '!.pytest_cache/**'
+      - '!tests/**'
+      - '!prepare_vendor.py'
+      - '!uv.lock'
+  - from: ../../curriculum
+    to: curriculum
+
+win:
+  # build/ 是 buildResources，electron-builder 会自动认这里的 icon.ico；
+  # 写明白一点，免得改目录时静默退回默认的 Electron 图标
+  icon: build/icon.ico
+  target:
+    - nsis
+  artifactName: ${productName}-${version}-setup.${ext}
+
+nsis:
+  # 给老师一个能选安装位置的常规安装向导，不做静默安装：
+  # 学校的机器 C 盘常常很小，而这个包不小
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  # 装到用户目录，不要求管理员权限——学校机器上老师多半没有管理员账号
+  perMachine: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: MathTeachCopilot

@@ -1,0 +1,370 @@
+{
+  "textbook": "北师大版",
+  "grade": "八年级上册",
+  "source": "北京师范大学出版社(北师大版)初中数学(2024年版新教材,依据《义务教育数学课程标准(2022年版)》)（经 MathMate 知识图谱 v2.0 导入）",
+  "nodes": [
+    {
+      "id": "ch-13",
+      "title": "第13章 勾股定理",
+      "knowledgePoints": [
+        {
+          "id": "tp-13-01",
+          "title": "勾股定理",
+          "standard": "",
+          "commonErrors": [
+            "勾股定理性乱用于非直角三角形;斜边分辨错；成因：定理前提与图形辨认；纠正：先确认直角,斜边是最长边对着直角;已知两边求第三边分两类"
+          ],
+          "desc": "探索勾股定理 a²+b²=c²",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-02-06",
+            "tp-10-01"
+          ]
+        },
+        {
+          "id": "tp-13-02",
+          "title": "勾股定理的逆定理",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "一定是直角三角形吗:判定直角三角形",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-13-01"
+          ]
+        },
+        {
+          "id": "tp-13-03",
+          "title": "勾股定理的应用",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "折叠、最短路径与实际问题",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-13-01"
+          ]
+        }
+      ],
+      "desc": "直角三角形三边数量关系及其逆定理",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-14",
+      "title": "第14章 实数",
+      "knowledgePoints": [
+        {
+          "id": "tp-14-01",
+          "title": "认识实数",
+          "standard": "",
+          "commonErrors": [
+            "认为带根号的数都是无理数,π 是有理数；成因：按形式而非定义分类；纠正：无理数是无限不循环小数,√4=2 是有理数,π 是无理数"
+          ],
+          "desc": "无理数的存在、实数分类、用数轴上的点表示实数",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-14-02",
+          "title": "平方根与立方根",
+          "standard": "",
+          "commonErrors": [
+            "认为 √9=±3；成因：平方根与算术平方根混淆；纠正：√9 表示9的算术平方根等于3;9的平方根才是±3"
+          ],
+          "desc": "开平方与开立方、算术平方根的非负性",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-02-06",
+            "tp-14-01"
+          ]
+        },
+        {
+          "id": "tp-14-03",
+          "title": "二次根式的概念与性质",
+          "standard": "",
+          "commonErrors": [
+            "√(a²)=a 恒成立；成因：忽略 a 的符号；纠正：√(a²)=|a|,a<0 时等于 -a"
+          ],
+          "desc": "双重非负性、(√a)²=a、√(a²)=|a|",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-14-02"
+          ]
+        },
+        {
+          "id": "tp-14-04",
+          "title": "二次根式的运算",
+          "standard": "",
+          "commonErrors": [
+            "√2+√3=√5；成因：把同类合并扩大化；纠正：只有被开方数相同的二次根式才能合并,类似合并同类项"
+          ],
+          "desc": "乘除法则、先化简再合并同类二次根式",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-14-03"
+          ]
+        }
+      ],
+      "desc": "无理数、平方根立方根与二次根式(新版三章合一)",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-15",
+      "title": "第15章 位置与坐标",
+      "knowledgePoints": [
+        {
+          "id": "tp-15-01",
+          "title": "确定位置",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "方位角+距离、经纬度等定位方法",
+          "examWeight": "low"
+        },
+        {
+          "id": "tp-15-02",
+          "title": "平面直角坐标系",
+          "standard": "",
+          "commonErrors": [
+            "象限符号记错;点到坐标轴的距离与坐标混淆；成因：坐标特征记忆不准；纠正：P(a,b) 到 x 轴距离为 |b|、到 y 轴距离为 |a|"
+          ],
+          "desc": "象限划分、点的坐标特征、用坐标描述几何图形",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-02-02",
+            "tp-15-01"
+          ]
+        },
+        {
+          "id": "tp-15-03",
+          "title": "轴对称与坐标变化",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "关于x轴/y轴对称点的坐标规律",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-11-01",
+            "tp-15-02"
+          ]
+        }
+      ],
+      "desc": "确定位置与平面直角坐标系",
+      "examWeight": "medium"
+    },
+    {
+      "id": "ch-16",
+      "title": "第16章 一次函数",
+      "knowledgePoints": [
+        {
+          "id": "tp-16-01",
+          "title": "函数的概念",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "函数、自变量取值范围、函数的表示方法",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-12-04"
+          ]
+        },
+        {
+          "id": "tp-16-02",
+          "title": "认识一次函数",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "正比例函数与一次函数的定义 y=kx+b",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-16-01"
+          ]
+        },
+        {
+          "id": "tp-16-03",
+          "title": "一次函数的图象与性质",
+          "standard": "",
+          "commonErrors": [
+            "k、b 符号与图象位置对应错误;忘 k≠0；成因：图象特征归纳不准；纠正：k 定增减、b 定与 y 轴交点,一次函数定义要求 k≠0"
+          ],
+          "desc": "k、b 与增减性、图象位置、待定系数法",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-15-02",
+            "tp-16-02"
+          ]
+        },
+        {
+          "id": "tp-16-04",
+          "title": "一次函数的应用",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "方案选择、分段函数与图象信息题",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-16-03"
+          ]
+        }
+      ],
+      "desc": "函数概念、一次函数图象性质与应用",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-17",
+      "title": "第17章 二元一次方程组",
+      "knowledgePoints": [
+        {
+          "id": "tp-17-01",
+          "title": "二元一次方程组的概念",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "方程组的解与检验",
+          "examWeight": "low"
+        },
+        {
+          "id": "tp-17-02",
+          "title": "代入消元法",
+          "standard": "",
+          "commonErrors": [
+            "代入消元时整体代入不加括号；成因：代入的是多项式；纠正：代入的式子是多项式时必须加括号再化简"
+          ],
+          "desc": "代入化二元为一元",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-05-03",
+            "tp-17-01"
+          ]
+        },
+        {
+          "id": "tp-17-03",
+          "title": "加减消元法",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "系数相同或相反时相加减",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-17-02"
+          ]
+        },
+        {
+          "id": "tp-17-04",
+          "title": "二元一次方程组的应用",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "与行程、方案设计等综合(鸡兔同笼等)",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-17-02"
+          ]
+        },
+        {
+          "id": "tp-17-05",
+          "title": "三元一次方程组(选学)",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "消元思想的推广",
+          "examWeight": "optional",
+          "prerequisites": [
+            "tp-17-02"
+          ]
+        },
+        {
+          "id": "tp-17-06",
+          "title": "二元一次方程与一次函数",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "方程组的解与两直线交点的关系(图象法解方程组)",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-16-03"
+          ]
+        }
+      ],
+      "desc": "消元思想、代入法与加减法及与函数的联系",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-18",
+      "title": "第18章 数据的分析",
+      "knowledgePoints": [
+        {
+          "id": "tp-18-01",
+          "title": "平均数与加权平均数",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "算术平均数与加权",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-18-02",
+          "title": "中位数与众数",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "集中趋势的度量",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-18-01"
+          ]
+        },
+        {
+          "id": "tp-18-03",
+          "title": "箱线图",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "四分位数与箱线图的读取(2022课标新增内容)",
+          "examWeight": "low",
+          "prerequisites": [
+            "tp-18-02"
+          ]
+        },
+        {
+          "id": "tp-18-04",
+          "title": "方差",
+          "standard": "",
+          "commonErrors": [
+            "认为方差越大成绩越稳定；成因：方差意义理解反；纠正：方差越小数据越稳定,比较稳定性先看平均数再看方差"
+          ],
+          "desc": "波动程度的度量",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-18-01"
+          ]
+        }
+      ],
+      "desc": "平均数、中位数、方差与箱线图(新版新增箱线图)",
+      "examWeight": "medium"
+    },
+    {
+      "id": "ch-19",
+      "title": "第19章 命题与证明",
+      "knowledgePoints": [
+        {
+          "id": "tp-19-01",
+          "title": "定义与命题",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "命题结构与真假、定理与公理",
+          "examWeight": "low"
+        },
+        {
+          "id": "tp-19-02",
+          "title": "证明的必要性",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "举反例与推理的严谨性",
+          "examWeight": "low",
+          "prerequisites": [
+            "tp-19-01"
+          ]
+        },
+        {
+          "id": "tp-19-03",
+          "title": "平行线的证明",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "用公理与定理证明平行线的判定与性质",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-08-05",
+            "tp-19-02"
+          ]
+        }
+      ],
+      "desc": "定义命题定理、证明的必要性与平行线的证明(北师大证明体系起点)",
+      "examWeight": "medium"
+    }
+  ]
+}

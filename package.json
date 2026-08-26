@@ -1,0 +1,40 @@
+{
+  "name": "mathteach-copilot",
+  "private": true,
+  "version": "0.0.1",
+  "description": "初中数学教师 harness 客户端",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @mtc/desktop dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "py:sync": "uv sync --project tools-py",
+    "py:test": "uv run --project tools-py pytest -q tools-py/tests",
+    "spike": "pnpm --filter @mtc/desktop spike",
+    "check": "pnpm --filter @mtc/desktop check",
+    "seed": "uv run --project tools-py python tools-py/seed_example.py",
+    "dev:ui": "pnpm --filter @mtc/desktop dev:ui",
+    "check:watch": "pnpm --filter @mtc/desktop check:watch",
+    "import:curriculum": "uv run --project tools-py python tools-py/import_curriculum.py",
+    "check:lesson": "pnpm --filter @mtc/desktop check:lesson",
+    "repro": "pnpm --filter @mtc/desktop repro",
+    "check:speed": "pnpm --filter @mtc/desktop check:speed",
+    "check:types": "pnpm --filter @mtc/desktop check:types",
+    "check:settings": "pnpm --filter @mtc/desktop check:settings",
+    "vendor:python": "uv run --project tools-py python tools-py/prepare_vendor.py",
+    "dist": "pnpm --filter @mtc/desktop dist",
+    "icon": "uv run --project tools-py python tools-py/make_icon.py"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  }
+}

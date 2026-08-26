@@ -1,0 +1,348 @@
+{
+  "textbook": "北师大版",
+  "grade": "八年级下册",
+  "source": "北京师范大学出版社(北师大版)初中数学(2024年版新教材,依据《义务教育数学课程标准(2022年版)》)（经 MathMate 知识图谱 v2.0 导入）",
+  "nodes": [
+    {
+      "id": "ch-20",
+      "title": "第20章 三角形的证明",
+      "knowledgePoints": [
+        {
+          "id": "tp-20-01",
+          "title": "三角形内角和定理的证明",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "辅助线构造平角/内错角,外角定理证明",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-10-02",
+            "tp-19-03"
+          ]
+        },
+        {
+          "id": "tp-20-02",
+          "title": "等腰三角形的性质与判定",
+          "standard": "",
+          "commonErrors": [
+            "在两个三角形中'边等角等'互推;等腰讨论漏情况；成因：定理前提是同一三角形；纠正：等边对等角限于同一三角形;已知腰底不明确时要分类"
+          ],
+          "desc": "等边对等角、三线合一、等边三角形与含30°角性质(证明)",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-10-05",
+            "tp-20-01"
+          ]
+        },
+        {
+          "id": "tp-20-03",
+          "title": "直角三角形",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "HL 定理、勾股定理的证明、含30°角的直角三角形(证明)",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-10-05"
+          ]
+        },
+        {
+          "id": "tp-20-04",
+          "title": "线段的垂直平分线(判定与作图)",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "到线段两端距离相等的点在线段垂直平分线上(判定定理与尺规作图)",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-11-02"
+          ]
+        },
+        {
+          "id": "tp-20-05",
+          "title": "角平分线(判定与作图)",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "角平分线的判定定理与尺规作图",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-11-03"
+          ]
+        }
+      ],
+      "desc": "以证明为主线:内角和、等腰三角形、垂直平分线与角平分线",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-21",
+      "title": "第21章 不等式与不等式组",
+      "knowledgePoints": [
+        {
+          "id": "tp-21-01",
+          "title": "不等式及其性质",
+          "standard": "",
+          "commonErrors": [
+            "不等式两边同乘负数不变号；成因：类推等式性质2；纠正：两边乘除同一个负数,不等号方向要改变(最高频考点)"
+          ],
+          "desc": "两边乘除负数方向改变",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-05-02"
+          ]
+        },
+        {
+          "id": "tp-21-02",
+          "title": "一元一次不等式的解法",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "解集及数轴表示",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-05-03",
+            "tp-21-01"
+          ]
+        },
+        {
+          "id": "tp-21-03",
+          "title": "一元一次不等式与一次函数",
+          "standard": "",
+          "commonErrors": [
+            "由图象比较 y 大小时方向弄反；成因：图象上下与不等式方向对应错误；纠正：图象在上方的一方 y 值大;先找交点再分段比较"
+          ],
+          "desc": "图象法解不等式、比较y值大小",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-16-03",
+            "tp-21-02"
+          ]
+        },
+        {
+          "id": "tp-21-04",
+          "title": "一元一次不等式组",
+          "standard": "",
+          "commonErrors": [
+            "不等式组解集取并集；成因：与方程组的'解'概念混淆；纠正：不等式组的解集是各解集的公共部分(交集),口诀同大取大、同小取小"
+          ],
+          "desc": "公共解集的确定",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-21-02"
+          ]
+        },
+        {
+          "id": "tp-21-05",
+          "title": "不等式(组)的应用",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "方案比较类问题",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-21-04"
+          ]
+        }
+      ],
+      "desc": "不等式性质、解法及与一次函数的联系",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-22",
+      "title": "第22章 图形的平移与旋转",
+      "knowledgePoints": [
+        {
+          "id": "tp-22-01",
+          "title": "图形的平移",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "平移的性质与作图、坐标中的平移",
+          "examWeight": "low"
+        },
+        {
+          "id": "tp-22-02",
+          "title": "图形的旋转",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "旋转三要素:中心、方向、角度",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-22-01"
+          ]
+        },
+        {
+          "id": "tp-22-03",
+          "title": "中心对称与中心对称图形",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "旋转180度重合的性质与作图",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-22-02"
+          ]
+        },
+        {
+          "id": "tp-22-04",
+          "title": "简单的图案设计",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "平移旋转轴对称的组合应用",
+          "examWeight": "low",
+          "prerequisites": [
+            "tp-22-02"
+          ]
+        }
+      ],
+      "desc": "平移、旋转、中心对称与图案设计",
+      "examWeight": "medium"
+    },
+    {
+      "id": "ch-23",
+      "title": "第23章 因式分解",
+      "knowledgePoints": [
+        {
+          "id": "tp-23-01",
+          "title": "因式分解的概念",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "与整式乘法的互逆关系",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-23-02",
+          "title": "提公因式法",
+          "standard": "",
+          "commonErrors": [
+            "提公因式后剩余项漏写1；成因：整除后余1意识缺失；纠正：ab+a=a(b+1),某项整除后要留1"
+          ],
+          "desc": "公因式的确定与提取",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-07-02",
+            "tp-23-01"
+          ]
+        },
+        {
+          "id": "tp-23-03",
+          "title": "公式法",
+          "standard": "",
+          "commonErrors": [
+            "因式分解不彻底,如 x⁴-1=(x²+1)(x²-1) 结束；成因：忽略可继续分解的因式；纠正：分解到每个因式都不能再分为止,x²-1 还能继续分解"
+          ],
+          "desc": "逆用平方差、完全平方公式分解因式",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-07-03",
+            "tp-23-02"
+          ]
+        }
+      ],
+      "desc": "提公因式法与公式法(整式乘法的逆变形)",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-24",
+      "title": "第24章 分式与分式方程",
+      "knowledgePoints": [
+        {
+          "id": "tp-24-01",
+          "title": "分式的概念与基本性质",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "分母不为零、基本性质",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-24-02",
+          "title": "分式的约分与通分",
+          "standard": "",
+          "commonErrors": [
+            "约分时把分子分母的加式硬约,如 (a²+1)/a 约成 a+1；成因：约分只能约公因式；纠正：乘除运算先因式分解再约去公因式,加减式不能逐项约"
+          ],
+          "desc": "最简分式、最简公分母",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-23-02",
+            "tp-24-01"
+          ]
+        },
+        {
+          "id": "tp-24-03",
+          "title": "分式的运算",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "乘除与加减混合运算",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-24-02"
+          ]
+        },
+        {
+          "id": "tp-24-04",
+          "title": "分式方程及其应用",
+          "standard": "",
+          "commonErrors": [
+            "解分式方程不验根；成因：去分母产生增根的意识不足；纠正：必须把根代入最简公分母检验,使公分母为0的是增根要舍去"
+          ],
+          "desc": "去分母化整、必须验根",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-05-03",
+            "tp-24-01"
+          ]
+        }
+      ],
+      "desc": "分式性质、运算与分式方程",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-25",
+      "title": "第25章 平行四边形",
+      "knowledgePoints": [
+        {
+          "id": "tp-25-01",
+          "title": "平行四边形的性质",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "边、角、对角线的特征(中心对称性)",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-08-04"
+          ]
+        },
+        {
+          "id": "tp-25-02",
+          "title": "平行四边形的判定",
+          "standard": "",
+          "commonErrors": [
+            "用'一组对边相等'判定平行四边形；成因：判定条件记半截；纠正：需一组对边平行且相等,或两组对边分别相等/平行"
+          ],
+          "desc": "五条判定定理",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-25-01"
+          ]
+        },
+        {
+          "id": "tp-25-03",
+          "title": "三角形的中位线",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "平行且等于第三边的一半",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-25-01"
+          ]
+        },
+        {
+          "id": "tp-25-04",
+          "title": "多边形的内角和与外角和",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "(n-2)·180度、外角和360度(北师大置于平行四边形章)",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-04-05",
+            "tp-10-02"
+          ]
+        }
+      ],
+      "desc": "平行四边形性质判定、三角形中位线与多边形内角和(新版由九上移至八下)",
+      "examWeight": "high"
+    }
+  ]
+}

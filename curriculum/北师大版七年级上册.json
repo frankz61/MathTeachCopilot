@@ -1,0 +1,337 @@
+{
+  "textbook": "北师大版",
+  "grade": "七年级上册",
+  "source": "北京师范大学出版社(北师大版)初中数学(2024年版新教材,依据《义务教育数学课程标准(2022年版)》)（经 MathMate 知识图谱 v2.0 导入）",
+  "nodes": [
+    {
+      "id": "ch-01",
+      "title": "第1章 丰富的图形世界",
+      "knowledgePoints": [
+        {
+          "id": "tp-01-01",
+          "title": "生活中的立体图形",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "棱柱、圆柱、圆锥、球的认识,点线面体",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-01-02",
+          "title": "从立体图形到平面图形",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "展开与折叠、截一个几何体、三视图初步",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-01-01"
+          ]
+        }
+      ],
+      "desc": "立体图形的认识、展开与折叠、截面",
+      "examWeight": "medium"
+    },
+    {
+      "id": "ch-02",
+      "title": "第2章 有理数及其运算",
+      "knowledgePoints": [
+        {
+          "id": "tp-02-01",
+          "title": "正数、负数与有理数的分类",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "用正负数表示相反意义的量,按定义与符号分类",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-02-02",
+          "title": "数轴、相反数与绝对值",
+          "standard": "",
+          "commonErrors": [
+            "认为 |a|=a 恒成立；成因：忽略字母取负数的情形；纠正：|a|表示数轴上a到原点距离,需分 a≥0 与 a<0 讨论"
+          ],
+          "desc": "数形结合的基础工具,绝对值的几何意义",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-02-01"
+          ]
+        },
+        {
+          "id": "tp-02-03",
+          "title": "有理数的大小比较",
+          "standard": "",
+          "commonErrors": [
+            "两个负数比较,认为绝对值大的数大；成因：套用正数比较规则；纠正：两个负数比较大小,绝对值大的反而小,可借助数轴左小右大"
+          ],
+          "desc": "利用数轴与绝对值比较大小",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-02-02"
+          ]
+        },
+        {
+          "id": "tp-02-04",
+          "title": "有理数的加减运算",
+          "standard": "",
+          "commonErrors": [
+            "异号两数相加,和的符号取错；成因：符号法则记忆不准；纠正：取绝对值较大加数的符号,并用较大的绝对值减去较小的"
+          ],
+          "desc": "符号法则与加减混合",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-02-02"
+          ]
+        },
+        {
+          "id": "tp-02-05",
+          "title": "有理数的乘除运算",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "倒数的概念与乘除法则",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-02-04"
+          ]
+        },
+        {
+          "id": "tp-02-06",
+          "title": "有理数的乘方与科学记数法",
+          "standard": "",
+          "commonErrors": [
+            "认为 -2² 与 (-2)² 相等；成因：混淆底数是否带括号；纠正：-2² 表示2²的相反数等于-4;(-2)²底数是-2,等于4",
+            "科学记数法写成 0.5×10³ 或 n 数错；成因：忽略 a 的范围与指数规则；纠正：a 必须满足 1≤|a|<10,n 等于原数移动的小数点位数"
+          ],
+          "desc": "幂、底数、指数的概念,a×10^n 表示大数",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-02-05"
+          ]
+        },
+        {
+          "id": "tp-02-07",
+          "title": "有理数的混合运算与近似数",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "运算顺序与近似数的精确度",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-02-06"
+          ]
+        }
+      ],
+      "desc": "有理数概念与五种运算(新版由旧版多节整合为五节)",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-03",
+      "title": "第3章 整式及其加减",
+      "knowledgePoints": [
+        {
+          "id": "tp-03-01",
+          "title": "代数式",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "用字母表示数,从算术到代数的过渡",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-03-02",
+          "title": "代数式的值",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "代入求值与整体代换",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-03-01"
+          ]
+        },
+        {
+          "id": "tp-03-03",
+          "title": "单项式与多项式",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "系数、次数、项数的识别",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-03-01"
+          ]
+        },
+        {
+          "id": "tp-03-04",
+          "title": "整式的加减",
+          "standard": "",
+          "commonErrors": [
+            "出现 3a+2b=5ab 或 a³+a²=a⁵；成因：把不是同类项的强行合并；纠正：字母和相同字母指数都相同才能合并,合并时只把系数相加",
+            "负号去括号只变第一项符号；成因：去括号法则使用不完整；纠正：括号前是负号,去掉括号后每一项都要变号"
+          ],
+          "desc": "合并同类项与去括号",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-03-03"
+          ]
+        },
+        {
+          "id": "tp-03-05",
+          "title": "探索与表达规律",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "数字规律与图形规律,归纳策略",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-03-01"
+          ]
+        }
+      ],
+      "desc": "代数式、整式概念与整式加减、探索规律",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-04",
+      "title": "第4章 基本平面图形",
+      "knowledgePoints": [
+        {
+          "id": "tp-04-01",
+          "title": "线段、射线、直线",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "概念、表示方法与基本事实",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-04-02",
+          "title": "线段的比较与中点",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "线段长短比较、和差与中点",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-04-01"
+          ]
+        },
+        {
+          "id": "tp-04-03",
+          "title": "角的度量与比较",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "角度换算、角的比较与角平分线",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-04-04",
+          "title": "余角与补角",
+          "standard": "",
+          "commonErrors": [
+            "互余写成和为180°,或认为两角必须相邻；成因：互余互补概念混淆；纠正：互余和为90°、互补和为180°,是数量关系与位置无关"
+          ],
+          "desc": "互余、互补的性质",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-04-03"
+          ]
+        },
+        {
+          "id": "tp-04-05",
+          "title": "多边形和圆的初步认识",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "多边形对角线、扇形与弧的初步概念",
+          "examWeight": "low"
+        }
+      ],
+      "desc": "线段、角、多边形和圆的初步认识",
+      "examWeight": "medium"
+    },
+    {
+      "id": "ch-05",
+      "title": "第5章 一元一次方程",
+      "knowledgePoints": [
+        {
+          "id": "tp-05-01",
+          "title": "方程与方程的解",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "认识方程、方程的解的概念",
+          "examWeight": "low"
+        },
+        {
+          "id": "tp-05-02",
+          "title": "等式的性质",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "两边同加减、同乘除(非零)",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-05-01"
+          ]
+        },
+        {
+          "id": "tp-05-03",
+          "title": "一元一次方程的解法",
+          "standard": "",
+          "commonErrors": [
+            "移项不变号;去分母时整数项漏乘最简公分母；成因：等式性质运用不严谨；纠正：移项过等号要变号;去分母时每一项都要乘公分母"
+          ],
+          "desc": "去分母、去括号、移项、合并、系数化1",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-02-07",
+            "tp-03-04",
+            "tp-05-02"
+          ]
+        },
+        {
+          "id": "tp-05-04",
+          "title": "一元一次方程的应用",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "行程、工程、配套、利润等问题",
+          "examWeight": "high",
+          "prerequisites": [
+            "tp-05-03"
+          ]
+        }
+      ],
+      "desc": "方程思想入门、解法与应用",
+      "examWeight": "high"
+    },
+    {
+      "id": "ch-06",
+      "title": "第6章 数据的收集与整理",
+      "knowledgePoints": [
+        {
+          "id": "tp-06-01",
+          "title": "数据的收集",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "普查与抽样调查、总体个体样本、丰富的数据世界",
+          "examWeight": "medium"
+        },
+        {
+          "id": "tp-06-02",
+          "title": "统计图表",
+          "standard": "",
+          "commonErrors": [],
+          "desc": "条形图、折线图、扇形图(数据的表示)",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-06-01"
+          ]
+        },
+        {
+          "id": "tp-06-03",
+          "title": "频数直方图",
+          "standard": "",
+          "commonErrors": [
+            "频数与频率混淆,分组时边界重复计数；成因：概念与统计习惯；纠正：频率=频数÷总数;分组通常前闭后开避免重复"
+          ],
+          "desc": "频数与组距的确定",
+          "examWeight": "medium",
+          "prerequisites": [
+            "tp-06-02"
+          ]
+        }
+      ],
+      "desc": "数据的收集与表示(新版含丰富的数据世界)",
+      "examWeight": "medium"
+    }
+  ]
+}

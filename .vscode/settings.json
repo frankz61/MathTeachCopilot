@@ -1,0 +1,37 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/tools-py/.venv/Scripts/python.exe",
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["tools-py/tests"],
+  "python.analysis.extraPaths": ["${workspaceFolder}/tools-py"],
+
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  // out/ 是构建产物，.venv 和 vendor 是几百兆的二进制，
+  // 不排掉的话全局搜索会被它们淹没
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/out": true,
+    "**/.venv": true,
+    "**/vendor/pandoc": true,
+    "**/vendor/python": true,
+    "**/pnpm-lock.yaml": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/out/**": true,
+    "**/.venv/**": true,
+    "**/vendor/**": true
+  },
+
+  "files.eol": "\n",
+  "editor.formatOnSave": true,
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[jsonc]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+
+  // 课时目录名、教材数据里都是中文，别让拼写检查刷屏
+  "cSpell.enabled": false
+}

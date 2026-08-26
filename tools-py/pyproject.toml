@@ -1,0 +1,29 @@
+[project]
+name = "mtc-mathtools"
+version = "0.0.1"
+description = "MathTeachCopilot 的数学工具层：验算 / 作图 / 导出，通过 MCP stdio 暴露给 Agent"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.2.0",
+    "sympy>=1.13",
+    "matplotlib>=3.9",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0", "debugpy>=1.8"]
+
+[tool.pytest.ini_options]
+# 只收 tools-py/tests。
+#
+# 不限定的话，pytest 会从仓库根往下走，一头扎进 vendor/python/Lib/site-packages
+# （打包用的随包 Python，18 万个文件），递归收集直接把栈撑爆——症状是一长串
+# genitems 帧，看不出和 vendor 有任何关系。
+testpaths = ["tests"]
+norecursedirs = [".venv", "vendor", "node_modules", "dist", "out", "__pycache__"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mathtools"]

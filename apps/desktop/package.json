@@ -1,0 +1,48 @@
+{
+  "name": "@mtc/desktop",
+  "productName": "MathTeachCopilot",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite",
+    "build": "electron-vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "spike": "tsx --env-file-if-exists=../../.env scripts/spike.ts",
+    "check": "tsx --env-file-if-exists=../../.env scripts/check-toolchain.ts",
+    "dev:debug": "electron-vite --sourcemap --remoteDebuggingPort=9455",
+    "dev:ui": "electron-vite --rendererOnly",
+    "check:watch": "tsx scripts/check-watch.ts",
+    "check:lesson": "tsx scripts/check-lesson.ts",
+    "repro": "tsx --env-file-if-exists=../../.env scripts/repro.ts",
+    "check:speed": "tsx --env-file-if-exists=../../.env scripts/check-speed.ts",
+    "check:types": "tsx --env-file-if-exists=../../.env scripts/check-types.ts",
+    "check:settings": "tsx scripts/check-settings.ts",
+    "dist": "electron-vite build && electron-builder --config electron-builder.yml"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.237",
+    "@mtc/shared": "workspace:*",
+    "@mtc/skills": "workspace:*",
+    "@mtc/workspace": "workspace:*",
+    "katex": "^0.16.11"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.7",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^7.0.0"
+  },
+  "description": "初中数学教师备课工作台",
+  "author": "MathTeachCopilot"
+}
