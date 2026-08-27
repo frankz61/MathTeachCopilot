@@ -19,8 +19,16 @@ import { fileURLToPath } from 'node:url'
 import { mathtoolsServer } from '../src/main/mcp.js'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
-/** 不传就验仓库；传了就验那个目录（打包产物的 resources/） */
-const baseDir = process.argv[2] ? path.resolve(process.argv[2]) : repoRoot
+/**
+ * 不传就验仓库；传了就验那个目录（打包产物的 resources/）。
+ *
+ * 相对路径按**命令敲下去的那个目录**解析（pnpm 放在 INIT_CWD 里），不能按 cwd：
+ * `pnpm check <dir>` 是在仓库根敲的，而 pnpm 会把脚本的 cwd 切到 apps/desktop，
+ * 直接 resolve 会拼出 apps/desktop/apps/desktop/...。那个目录不存在，
+ * mcp.ts 就静默退回 uv 开发链路——于是「验打包产物」验的其实是源码，还报一切正常。
+ */
+const invokedFrom = process.env['INIT_CWD'] ?? process.cwd()
+const baseDir = process.argv[2] ? path.resolve(invokedFrom, process.argv[2]) : repoRoot
 const EXPECTED = [
   'verify_algebra',
   'verify_answer_shape',
@@ -37,7 +45,17 @@ interface RpcResponse {
 
 async function main(): Promise<void> {
   const cfg = mathtoolsServer(baseDir)
-  if (baseDir !== repoRoot) console.log(`验的是：${baseDir}`)
+  if (baseDir !== repoRoot) {
+    console.log(`验的是：${baseDir}`)
+    // 指定了 baseDir 却退回 uv，说明那儿没有随包 Python。继续跑只会验到开发链路，
+    // 绿得毫无意义——发版流程正是靠这一步拦住「打出来的包起不来工具进程」。
+    if (cfg.command === 'uv') {
+      fail(
+        `${baseDir} 下没有 vendor/python/python.exe + tools-py/server.py，\n` +
+          '  这不是打包产物的 resources/ 目录（或者 pnpm vendor:python 没跑过）',
+      )
+    }
+  }
   console.log(`启动命令：${cfg.command} ${cfg.args.join(' ')}\n`)
 
   // 不用 shell:true —— 参数不转义有注入风险，而且 Agent SDK 拉起 MCP server

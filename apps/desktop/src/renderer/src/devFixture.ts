@@ -17,6 +17,7 @@ import type {
   LlmSettings,
   MtcApi,
   SettingsSource,
+  UpdateState,
 } from '@mtc/shared'
 
 const meta: LessonMeta = {
@@ -475,6 +476,11 @@ export const devApi: MtcApi = {
   deleteProblem: async () => {},
   updateProblem: async () => ({ ok: true }),
   setLessonStatus: async () => {},
+  // 浏览器里没有 updater（它只在安装包里工作）。回 'dev' 而不是假状态：
+  // 假一个「有新版本」的话，「重启安装」按钮在浏览器里就是点不动的死按钮
+  checkForUpdates: async () => DEV_UPDATE_STATE,
+  installUpdate: async () => undefined,
+  onUpdateState: (_cb) => () => undefined,
   runAgent: async (req) => {
     for (const [i, event] of SCRIPT.entries()) {
       setTimeout(() => listeners.forEach((cb) => cb(req.lessonId, event)), 350 * (i + 1))
@@ -490,6 +496,24 @@ export const devApi: MtcApi = {
 }
 
 const listeners = new Set<(lessonId: string, e: AgentEvent) => void>()
+
+/** 浏览器里的更新状态：恒为 dev。想验「下载中/可安装」的顶栏样式，
+ *  把 URL 换成 ?update=ready 这类再刷新，不用改代码。 */
+const DEV_UPDATE_STATE: UpdateState = (() => {
+  if (typeof location === 'undefined') return { status: 'dev' }
+  const q = new URLSearchParams(location.search).get('update')
+  if (q === 'downloading')
+    return {
+      status: 'downloading',
+      currentVersion: '0.1.0',
+      newVersion: '0.2.0',
+      percent: 46,
+      transferredBytes: 430_000_000,
+      totalBytes: 934_000_000,
+    }
+  if (q === 'ready') return { status: 'ready', currentVersion: '0.1.0', newVersion: '0.2.0' }
+  return { status: 'dev' }
+})()
 
 /** 订阅类方法缺失时的安全替身：什么都不做，但不能抛错 */
 const noopUnsubscribe = (): (() => void) => () => {}
@@ -523,6 +547,9 @@ const STUBS: MtcApi = {
   deleteProblem: rejecting('deleteProblem'),
   updateProblem: rejecting('updateProblem'),
   setLessonStatus: rejecting('setLessonStatus'),
+  checkForUpdates: rejecting('checkForUpdates'),
+  installUpdate: rejecting('installUpdate'),
+  onUpdateState: noopUnsubscribe,
   runAgent: rejecting('runAgent'),
   interruptAgent: rejecting('interruptAgent'),
   onAgentEvent: noopUnsubscribe,

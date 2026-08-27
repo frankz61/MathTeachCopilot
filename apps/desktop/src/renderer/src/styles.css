@@ -1136,6 +1136,48 @@ input {
   font-weight: 600;
 }
 
+/* 顶栏的更新提示：下载中是被动信息（灰、不可点），就绪是动作（绿、可点）。
+   只在这两个状态出现——常驻的横条很快会被学会无视。 */
+.update-chip {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--c-gray-bg);
+  color: var(--c-text-3);
+  border: 1px solid var(--c-gray-line);
+  white-space: nowrap;
+}
+.update-chip.actionable {
+  background: var(--c-green-bg);
+  color: var(--c-green);
+  border-color: var(--c-green-line);
+  font-weight: 600;
+  cursor: pointer;
+}
+.update-chip.actionable:hover {
+  border-color: var(--c-green);
+}
+
+/* 设置窗里的「软件更新」一节 */
+.ed-section-title {
+  margin: 16px 0 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c-text);
+  border-top: 1px solid var(--c-border);
+  padding-top: 14px;
+}
+.update-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface-2);
+}
+
 .setup-banner {
   display: flex;
   align-items: center;

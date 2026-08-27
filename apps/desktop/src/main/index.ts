@@ -17,6 +17,7 @@ import { runAgent, type RunHandle } from './agent.js'
 import { LessonWatcher } from './watcher.js'
 import { runPyTool } from './pytool.js'
 import { listImageModels, resolveEffective, testLlm, writeSettings } from './settings.js'
+import { initUpdater, type Updater } from './updater.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -61,6 +62,7 @@ function effective(): ReturnType<typeof resolveEffective> {
 
 let win: BrowserWindow | null = null
 let running: RunHandle | null = null
+let updater: Updater | null = null
 
 /** 当前打开的课时目录被监听着，文件一变就推给 UI 重读 */
 let watchedLessonId: string | null = null
@@ -119,6 +121,12 @@ function createWindow(): void {
   })
 
   win.on('ready-to-show', () => win?.show())
+
+  // 启动自动查更新可能早于渲染层就绪，错过的事件它再也收不到。
+  // 加载完成（含开发期 HMR 重载）时把当前状态补发一遍。
+  win.webContents.on('did-finish-load', () => {
+    if (updater) win?.webContents.send(IPC.updateState, updater.current())
+  })
 
   // 双击标题栏、Win+↑、拖到屏幕顶端都会改变最大化状态，这些路径渲染层
   // 一个都感知不到。不推的话，那个「最大化/还原」图标会和实际状态对不上。
@@ -231,6 +239,11 @@ function registerIpc(): void {
   ipcMain.handle(IPC.testLlm, (_e, s: LlmSettings) => testLlm(s))
 
   ipcMain.handle(IPC.listImageModels, (_e, s: LlmSettings) => listImageModels(s))
+
+  ipcMain.handle(IPC.checkForUpdates, () =>
+    updater ? updater.check() : Promise.resolve({ status: 'dev' } as const),
+  )
+  ipcMain.handle(IPC.installUpdate, () => updater?.install())
 
   ipcMain.handle(IPC.runAgent, async (_e, req: AgentRunRequest) => {
     // 没配好就别让 SDK 去撞认证错——那个错完全指不到设置页，
@@ -346,6 +359,8 @@ function registerIpc(): void {
 void app.whenReady().then(() => {
   registerIpc()
   createWindow()
+  // 更新状态往当前窗口推；updater 在开发模式下自动短路成 status='dev'
+  updater = initUpdater((s) => win?.webContents.send(IPC.updateState, s))
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })

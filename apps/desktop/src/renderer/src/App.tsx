@@ -7,6 +7,7 @@ import type {
   Lesson,
   LessonMeta,
   Problem,
+  UpdateState,
 } from '@mtc/shared'
 import { LessonPane } from './components/LessonPane.js'
 import { ArtifactPane } from './components/ArtifactPane.js'
@@ -35,6 +36,8 @@ export function App(): ReactElement {
   /** null = 还没读到。读到之前不弹设置窗，否则每次启动都闪一下。 */
   const [settings, setSettings] = useState<EffectiveSettings | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  /** 更新状态。启动时主进程静默查 + 后台下，这里只负责把进展亮出来 */
+  const [update, setUpdate] = useState<UpdateState | null>(null)
 
   // 当前课时 id 放 ref：事件回调只订阅一次，不能靠闭包里的 state
   const currentId = useRef<string | null>(null)
@@ -76,10 +79,12 @@ export function App(): ReactElement {
     // 刷新只认文件监听，不认 agent 的 file 事件——那个是发起调用的时刻，
     // 文件还没落盘，读到的会是旧内容。见 src/main/watcher.ts。
     const offWatch = api().onLessonChanged((lessonId) => reload(lessonId))
+    const offUpdate = api().onUpdateState(setUpdate)
 
     return () => {
       offAgent()
       offWatch()
+      offUpdate()
     }
   }, [reload])
 
@@ -198,6 +203,23 @@ export function App(): ReactElement {
         )}
         <span className="spacer" />
         {isDevFixture() && <span className="dev-flag">演示数据</span>}
+        {/* 更新提示只在「下载中 / 已就绪」两个状态出现。查失败不打扰——
+            学校网络到 GitHub 不通是常态，每次启动都在顶栏挂一条红的，
+            只会让老师学会无视顶栏。错误细节留在设置窗里看。 */}
+        {update?.status === 'downloading' && (
+          <span className="update-chip" title={`新版本 ${update.newVersion} 正在后台下载`}>
+            新版本 {update.newVersion} 下载中 {Math.round(update.percent)}%
+          </span>
+        )}
+        {update?.status === 'ready' && (
+          <button
+            className="update-chip actionable"
+            title={`已下载 ${update.newVersion}，点击重启并安装。现在不点，退出时也会装上。`}
+            onClick={() => void api().installUpdate()}
+          >
+            重启安装新版本
+          </button>
+        )}
         <button
           className={settings && !settings.configured ? 'settings-btn need' : 'settings-btn'}
           title="网关地址、API Key、模型、图模型"

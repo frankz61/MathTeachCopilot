@@ -28,6 +28,9 @@ export const IPC = {
   saveSettings: 'settings:save',
   testLlm: 'settings:testLlm',
   listImageModels: 'settings:listImageModels',
+  checkForUpdates: 'update:check',
+  installUpdate: 'update:install',
+  updateState: 'update:state',
   runAgent: 'agent:run',
   interruptAgent: 'agent:interrupt',
   agentEvent: 'agent:event',
@@ -111,6 +114,31 @@ export interface AgentRunRequest {
   prompt: string
 }
 
+/**
+ * 应用更新的状态机。主进程推给 UI，顶栏和设置窗都照着它渲染。
+ *
+ * 更新源是 GitHub Releases（electron-builder 的 publish 配置），CI 打 tag 时
+ * 连 latest.yml 一起发布，electron-updater 靠它发现和下载新版本。
+ */
+export type UpdateState =
+  /** 开发模式下 updater 不工作（app-update.yml 只在安装包里存在） */
+  | { status: 'dev' }
+  | { status: 'idle'; currentVersion: string }
+  | { status: 'checking'; currentVersion: string }
+  | { status: 'available'; currentVersion: string; newVersion: string }
+  | { status: 'not-available'; currentVersion: string }
+  | {
+      status: 'downloading'
+      currentVersion: string
+      newVersion: string
+      /** 0–100 */
+      percent: number
+      transferredBytes?: number
+      totalBytes?: number
+    }
+  | { status: 'ready'; currentVersion: string; newVersion: string }
+  | { status: 'error'; currentVersion: string; message: string }
+
 export interface MtcApi {
   listLessons(): Promise<LessonMeta[]>
   readLesson(lessonId: string): Promise<Lesson>
@@ -173,6 +201,20 @@ export interface MtcApi {
    * 四十秒后一个 400。列出来让老师点，比让他背一个名字靠谱。
    */
   listImageModels(s: LlmSettings): Promise<ImageModelList>
+  /**
+   * 立即检查一次更新，返回发起时的状态（进展经 onUpdateState 推过来）。
+   *
+   * 启动时会自动静默查一次 + 后台下载，所以老师不点这个按钮也能升上——
+   * 这个按钮的真正价值是把「现在到底什么状态」亮出来。
+   */
+  checkForUpdates(): Promise<UpdateState>
+  /** 退出并安装已下载好的更新（只有 ready 状态有意义） */
+  installUpdate(): Promise<void>
+  /**
+   * 更新状态变化。界面加载完成时主进程会先把当前状态补发一遍——
+   * 启动自动检查可能早于渲染层就绪，错过就再也看不到了。
+   */
+  onUpdateState(cb: (s: UpdateState) => void): () => void
   runAgent(req: AgentRunRequest): Promise<void>
   interruptAgent(): Promise<void>
   /**

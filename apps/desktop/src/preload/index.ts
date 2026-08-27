@@ -9,6 +9,7 @@ import {
   type LlmSettings,
   type MtcApi,
   type Problem,
+  type UpdateState,
 } from '@mtc/shared'
 
 /**
@@ -42,6 +43,13 @@ const api: MtcApi = {
   saveSettings: (s: LlmSettings) => ipcRenderer.invoke(IPC.saveSettings, s),
   testLlm: (s: LlmSettings) => ipcRenderer.invoke(IPC.testLlm, s),
   listImageModels: (s: LlmSettings) => ipcRenderer.invoke(IPC.listImageModels, s),
+  checkForUpdates: () => ipcRenderer.invoke(IPC.checkForUpdates),
+  installUpdate: () => ipcRenderer.invoke(IPC.installUpdate),
+  onUpdateState: (cb: (s: UpdateState) => void) => {
+    const listener = (_: unknown, s: UpdateState): void => cb(s)
+    ipcRenderer.on(IPC.updateState, listener)
+    return () => ipcRenderer.off(IPC.updateState, listener)
+  },
   runAgent: (req: AgentRunRequest) => ipcRenderer.invoke(IPC.runAgent, req),
   interruptAgent: () => ipcRenderer.invoke(IPC.interruptAgent),
   onAgentEvent: (cb: (lessonId: string, e: AgentEvent) => void) => {

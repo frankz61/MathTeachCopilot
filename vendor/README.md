@@ -12,10 +12,18 @@
 
     vendor/pandoc/pandoc.exe
 
+由脚本准备，版本钉死在 `tools-py/prepare_pandoc.py` 里（docx writer 的行为跟版本走，
+本机、CI、老师机器上必须是同一个）：
+
+```bash
+pnpm vendor:pandoc
+```
+
+它下官方 zip、只取出 `pandoc.exe`，最后**真转一份带公式的 docx**，
+拆开确认里面是 `<m:oMath>` 而不是图片——只跑 `--version` 证明不了这件事。
+
 开发期没有它也能跑其余部分，导出工具会返回一条明确的错误而不是静默失败。
 本机开发也可以装到 PATH 上，或用环境变量 `MTC_PANDOC` 指定路径。
-
-下载：https://github.com/jgm/pandoc/releases （Windows x86_64 zip）
 
 ## python
 

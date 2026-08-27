@@ -6,6 +6,7 @@ import {
   type LlmSettings,
   type LlmTestResult,
   type SettingsSource,
+  type UpdateState,
 } from '@mtc/shared'
 import { api } from '../devFixture.js'
 
@@ -43,6 +44,52 @@ function SourceTag({ from }: { from: SettingsSource }): ReactElement | null {
   return <span className={`src-tag src-${from}`}>{text}</span>
 }
 
+/** 把更新状态翻成老师能照着做的话，而不是 electron-updater 的英文原文 */
+function UpdateStatusLine({ state }: { state: UpdateState }): ReactElement | null {
+  const mb = (n: number): string => `${Math.round(n / 1024 / 1024)} MB`
+  switch (state.status) {
+    case 'dev':
+      return (
+        <p className="ed-note">
+          开发模式下没有更新检查（更新只在安装包里工作，靠 GitHub Releases 分发）。
+        </p>
+      )
+    case 'checking':
+      return <p className="ed-note">正在检查…</p>
+    case 'available':
+      return <p className="ed-note">发现新版本 {state.newVersion}，正在后台下载。</p>
+    case 'not-available':
+      return <p className="ed-note">已是最新版本。</p>
+    case 'downloading':
+      return (
+        <p className="ed-note">
+          正在下载 {state.newVersion}：{Math.round(state.percent)}%
+          {state.transferredBytes !== undefined &&
+            state.totalBytes !== undefined &&
+            `（${mb(state.transferredBytes)} / ${mb(state.totalBytes)}）`}
+          。安装包接近 1 GB，网络慢的时候要等一阵；可以继续干别的，下完顶栏会出现「重启安装」。
+        </p>
+      )
+    case 'ready':
+      return (
+        <p className="ed-note">
+          {state.newVersion} 已下载好。点上面的按钮重启并安装；现在不点，退出应用时也会自动装上。
+        </p>
+      )
+    case 'error':
+      return (
+        <p className="ed-note">
+          检查或下载失败：<code className="path">{state.message}</code>
+          <br />
+          多半是网络到不了 GitHub（更新源目前是 GitHub Releases）。不影响出题和导出，
+          换个网络再试，或到项目的 Releases 页手动下载安装包。
+        </p>
+      )
+    default:
+      return null
+  }
+}
+
 export function SettingsDialog({
   onClose,
   onSaved,
@@ -66,6 +113,7 @@ export function SettingsDialog({
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [update, setUpdate] = useState<UpdateState | null>(null)
 
   useEffect(() => {
     void api()
@@ -75,6 +123,8 @@ export function SettingsDialog({
         setForm(e.settings)
       })
       .catch((err: unknown) => setError(String(err)))
+    // 设置窗开着的时候更新状态也要跟着走：老师可能正对着这页等下载完成
+    return api().onUpdateState(setUpdate)
   }, [])
 
   useEffect(() => {
@@ -130,6 +180,13 @@ export function SettingsDialog({
       })
       .catch((e: unknown) => setError(String(e)))
       .finally(() => setSaving(false))
+  }
+
+  const doCheckUpdate = (): void => {
+    void api()
+      .checkForUpdates()
+      .then(setUpdate)
+      .catch(() => undefined) // 失败经 onUpdateState 推过来，这里不用再报一遍
   }
 
   return (
@@ -266,6 +323,32 @@ export function SettingsDialog({
           目标形态是走中继：客户端只拿一个短期凭据，上游厂商密钥永远不落到你的电脑上。
           那个还没做，所以现在这个 Key 是明文存在上面那个文件里的。
         </p>
+
+        <h4 className="ed-section-title">软件更新</h4>
+        <div className="update-row">
+          <span className="ed-label">
+            当前版本
+            <span className="tabular">{update && 'currentVersion' in update ? update.currentVersion : '…'}</span>
+          </span>
+          {update?.status === 'ready' ? (
+            <button className="primary-btn" onClick={() => void api().installUpdate()}>
+              重启并安装 {update.newVersion}
+            </button>
+          ) : (
+            <button
+              className="p-act"
+              disabled={update?.status === 'checking' || update?.status === 'downloading'}
+              onClick={doCheckUpdate}
+            >
+              {update?.status === 'checking'
+                ? '检查中…'
+                : update?.status === 'downloading'
+                  ? `下载中 ${Math.round(update.percent)}%`
+                  : '检查更新'}
+            </button>
+          )}
+        </div>
+        {update && <UpdateStatusLine state={update} />}
 
         <div className="ed-actions">
           <span className="ed-hint">

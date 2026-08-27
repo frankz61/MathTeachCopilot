@@ -18,6 +18,14 @@ from mathtools.export import find_pandoc
 CLI = Path(__file__).resolve().parents[1] / "cli.py"
 
 
+# 和主进程真正拉起 cli.py 时给的环境一致（apps/desktop/src/main/mcp.ts 的 toolEnv）。
+#
+# 不给这个环境，子进程的 stdout 走系统区域设置——中文 Windows 上是 GBK，
+# 而这边按 utf-8 解，报出来的是 UnicodeDecodeError，指不到任何真问题。
+# **每一处拉起 cli.py 都要用它**，否则测的就不是真实调用方式了。
+TOOL_ENV = {"PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1", "PATH": ""}
+
+
 def run_cli(command: str, payload: dict) -> tuple[int, dict]:
     proc = subprocess.run(
         [sys.executable, str(CLI), command],
@@ -25,7 +33,7 @@ def run_cli(command: str, payload: dict) -> tuple[int, dict]:
         capture_output=True,
         text=True,
         encoding="utf-8",
-        env={"PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1", "PATH": ""},
+        env=TOOL_ENV,
         cwd=str(CLI.parent),
     )
     line = (proc.stdout or "").strip().splitlines()[-1] if proc.stdout.strip() else "{}"
@@ -64,6 +72,8 @@ class Test错误处理:
             capture_output=True,
             text=True,
             encoding="utf-8",
+            env=TOOL_ENV,
+            cwd=str(CLI.parent),
         )
         out = json.loads(proc.stdout.strip().splitlines()[-1])
         assert not out["ok"] and "JSON" in out["error"]

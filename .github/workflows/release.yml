@@ -1,0 +1,160 @@
+# 发版：推一个 v* tag，出 Windows 安装包并发布到 GitHub Releases。
+#
+#   pnpm bump --patch            # 同时改根和 apps/desktop 两份 package.json
+#   git commit -am "release: v0.0.2"
+#   git tag v0.0.2
+#   git push && git push --tags  # 这一推触发本 workflow
+#
+# 发布上去的不只是安装包：electron-builder 同时传 blockmap 和 latest.yml，
+# 老师端的自动更新（apps/desktop/src/main/updater.ts）全靠这两样——
+# latest.yml 对版本，blockmap 让近 1 GB 的包只下变过的块。
+#
+# 手工触发（workflow_dispatch）只打包不发布，用来验这条链路还通不通。
+# 下面的步骤用 `github.event_name == 'push'` 区分这两种触发：on.push 只监听 v* tag，
+# 所以「是一次 push」就等于「是一次发版」。手工触发即便选在 tag 上也不会发布。
+#
+# 为什么整条链路都在 CI 里重建：本机上的 pandoc、embeddable Python、图标
+# 全部不进版本库（见 .gitignore）。发版从一个干净 checkout 重建全部，
+# 否则「发出去的那份」和「本机验过的那份」永远说不清是不是同一个东西。
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: 把安装包传成 workflow artifact（约 270 MB，留 7 天）
+        type: boolean
+        default: false
+
+# electron-builder 要建 release、传附件
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  # 发布中途被取消会在 Releases 里留下半个版本，宁可让两趟排队
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    # 装依赖 + 下 Python/pandoc + 打两遍近 1 GB 的产物，一趟不快
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      # 版本从根 package.json 的 packageManager 字段读，不在这里重复一份
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          cache-dependency-glob: tools-py/uv.lock
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      # tag 和 package.json 对不上，出来的安装包会叫 MathTeachCopilot-<旧版本>-setup.exe，
+      # 而 latest.yml 里写的也是旧版本——老师端会认为「已是最新」，永远升不上去。
+      # 这个错必须在打包之前拦住，不是打完之后才发现。
+      - name: 校验 tag 与 package.json 版本一致
+        if: github.event_name == 'push'
+        shell: pwsh
+        # tag 名走环境变量，不往脚本里插 ${{ }}：插值是文本替换，
+        # tag 里带个引号就能把这段脚本改成别的意思
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          $tag = $env:TAG -replace '^v', ''
+          foreach ($f in 'package.json', 'apps/desktop/package.json') {
+            $v = (Get-Content $f -Raw | ConvertFrom-Json).version
+            if ($v -ne $tag) {
+              throw "tag 是 $tag，$f 里是 $v —— 先 pnpm bump 改版本再打 tag"
+            }
+          }
+          Write-Host "版本 $tag（两份 package.json 一致）"
+
+      # tag 推上来不触发 ci.yml（它只认 main 和 PR）。没过类型检查的东西不该发出去，
+      # 所以这里重跑一遍，不指望「main 上绿过」——tag 可能打在别的提交上。
+      - name: 类型检查
+        run: pnpm typecheck
+
+      # apps/desktop/build/ 不进版本库，图标是画出来的。少了 icon.ico，
+      # electron-builder 不会报错，会静默退回 Electron 默认图标发出去。
+      - name: 生成图标
+        run: pnpm icon
+
+      - name: 准备随包 Python
+        run: pnpm vendor:python
+
+      - name: 准备随包 pandoc
+        run: pnpm vendor:pandoc
+
+      # 和 ci.yml 里跑的不是一回事：这一趟 vendor/pandoc 已经就位，
+      # 于是 OMML 回归测试（导出的公式必须是 Word 原生对象、不能是图片）
+      # 真的会执行——它在 CI 里因为没有 pandoc 一直是 skip 的。
+      # 公式变成图片是这个产品最贵的一种故障，发版前必须真验一次。
+      - name: Python 工具层测试（含 OMML 回归）
+        run: pnpm py:test
+
+      # 先打成目录形态（跳过 NSIS 压缩），拿去验工具链，验过了再打安装包。
+      # 顺序是刻意的：验证必须在发布之前——见下一步。
+      - name: 打包成目录形态
+        run: pnpm dist:dir
+
+      # 最值钱的一步。开发期一切正常、打包后 Python 工具进程起不来是真实发生过的
+      # （embeddable Python 的 ._pth 会关掉「脚本目录自动进 sys.path」）。
+      # 这种故障只在老师的机器上出现，而一旦先发布再发现，自动更新已经把坏版本拉走了。
+      # 传绝对路径：pnpm 会把脚本 cwd 切到 apps/desktop，相对路径会解析错。
+      - name: 验打包产物能拉起 Python 工具进程
+        shell: pwsh
+        run: pnpm check "$env:GITHUB_WORKSPACE/apps/desktop/dist/win-unpacked/resources"
+
+      - name: 打安装包并发布到 Releases
+        if: github.event_name == 'push'
+        run: pnpm dist:publish
+        env:
+          # electron-builder 认这个名字；用 Actions 自带的 token，不用配 secret
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 只打安装包，不发布（手工触发）
+        if: github.event_name != 'push'
+        run: pnpm dist
+
+      # latest.yml 是老师端自动更新的入口（electron-updater 拿它对版本）。它由
+      # electron-builder.yml 的 publish 段生成——那段配错或漏了它就不出现，
+      # 而「安装包发出去了、更新链路断了」不会报任何错，只会表现成半年后大家还在用旧版。
+      #
+      # 两条路都验：手工触发那趟不发布，但同样要能看出更新源是不是完整的。
+      # 版本从 package.json 读，不从 tag——手工触发时没有 tag，而 tag 那条路
+      # 前面已经校验过两者一致了。
+      - name: 确认更新源文件齐全
+        shell: pwsh
+        run: |
+          $ver = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $dist = 'apps/desktop/dist'
+          Get-ChildItem $dist -File | Select-Object Name, @{n='MB';e={[int]($_.Length/1MB)}} | Format-Table
+          $need = 'latest.yml',
+                  "MathTeachCopilot-$ver-setup.exe",
+                  "MathTeachCopilot-$ver-setup.exe.blockmap"
+          foreach ($f in $need) {
+            if (-not (Test-Path (Join-Path $dist $f))) {
+              throw "$f 没生成——自动更新会静默失效，检查 electron-builder.yml 的 publish 段"
+            }
+          }
+          Write-Host "自动更新三件套齐了：latest.yml + 安装包 + blockmap（v$ver）"
+
+      - name: 上传安装包为 artifact
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: MathTeachCopilot-setup
+          path: apps/desktop/dist/*.exe
+          retention-days: 7

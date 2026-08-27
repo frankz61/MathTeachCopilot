@@ -25,8 +25,12 @@
     "check:types": "pnpm --filter @mtc/desktop check:types",
     "check:settings": "pnpm --filter @mtc/desktop check:settings",
     "vendor:python": "uv run --project tools-py python tools-py/prepare_vendor.py",
+    "vendor:pandoc": "uv run --project tools-py python tools-py/prepare_pandoc.py",
     "dist": "pnpm --filter @mtc/desktop dist",
-    "icon": "uv run --project tools-py python tools-py/make_icon.py"
+    "dist:dir": "pnpm --filter @mtc/desktop dist:dir",
+    "dist:publish": "pnpm --filter @mtc/desktop dist:publish",
+    "icon": "uv run --project tools-py python tools-py/make_icon.py",
+    "bump": "node scripts/bump-version.mjs"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

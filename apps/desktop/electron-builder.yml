@@ -1,4 +1,4 @@
-# 打包配置。跑法：pnpm dist
+# 打包配置。跑法：pnpm dist（本地只打包不发布）；CI 发版走 pnpm dist:publish
 #
 # 前置：先跑 pnpm vendor:python 准备随包分发的 Python 运行时，
 # 并把 pandoc.exe 放在 vendor/pandoc/ 下（见 vendor/README.md）。
@@ -6,6 +6,19 @@
 appId: top.frankzhangs.mathteachcopilot
 productName: MathTeachCopilot
 copyright: MathTeachCopilot
+
+# 发布到 GitHub Releases。作用有两个：
+# 1. CI 打 tag 后把安装包传上去（--publish always 才会真的发，本地 dist 不发）
+# 2. 生成 app-update.yml 和 latest.yml——应用内自动更新（src/main/updater.ts）
+#    全靠它们。releaseType 必须显式写成 release：默认是 draft，
+#    而 draft 里的 latest.yml 老师端拉不到——更新会静默地永远查不到新版。
+#    （没有 draft 这个键，草稿与否只由 releaseType 决定；多写一个键
+#    electron-builder 会直接拒绝整份配置。）
+publish:
+  provider: github
+  owner: frankz61
+  repo: MathTeachCopilot
+  releaseType: release
 
 directories:
   output: dist
@@ -46,7 +59,10 @@ extraResources:
       - '!**/__pycache__/**'
       - '!.pytest_cache/**'
       - '!tests/**'
+      # 构建期脚本，装到老师机器上没有意义
       - '!prepare_vendor.py'
+      - '!prepare_pandoc.py'
+      - '!make_icon.py'
       - '!uv.lock'
   - from: ../../curriculum
     to: curriculum

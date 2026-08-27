@@ -1,0 +1,51 @@
+# CI：push / PR 都跑。全部不需要 API key，也不需要联网拉模型。
+#
+# Windows runner 是刻意的——工具链（embeddable Python、pandoc、NSIS）
+# 只服务 Windows 客户端，验别的工作流要跑的也是打包前的那条链路。
+#
+# 覆盖：类型检查（全仓）、Python 工具层测试（188 个）、工具链自检
+# （客户端能不能拉起 Python 工具进程——单元测试全绿而链路断了的事发生过）。
+#
+# 端到端（spike / check:types / check:speed）需要真实模型，不进 CI：
+# 花钱、慢、且结果不稳定。它们是本地诊断工具，不是回归门。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # 版本从根 package.json 的 packageManager 字段读，不在这里重复一份
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          cache-dependency-glob: tools-py/uv.lock
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 类型检查
+        run: pnpm typecheck
+
+      - name: Python 工具层测试
+        run: pnpm py:test
+
+      - name: 工具链自检（拉起 Python MCP 工具进程）
+        run: pnpm check
