@@ -124,6 +124,9 @@ jobs:
           # electron-builder 认这个名字；用 Actions 自带的 token，不用配 secret
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # dist 脚本里写死了 --publish never。不写的话，CI 上没有 tag 也会被隐式
+      # 设成 onTagOrDraft，然后为了查「有没有 draft」去建 GitHub publisher，
+      # 没 token 就整个失败——本机跑一万遍都碰不到（见 electron-builder.yml）。
       - name: 只打安装包，不发布（手工触发）
         if: github.event_name != 'push'
         run: pnpm dist

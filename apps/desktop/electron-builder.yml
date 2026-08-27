@@ -8,7 +8,13 @@ productName: MathTeachCopilot
 copyright: MathTeachCopilot
 
 # 发布到 GitHub Releases。作用有两个：
-# 1. CI 打 tag 后把安装包传上去（--publish always 才会真的发，本地 dist 不发）
+# 1. CI 打 tag 后把安装包传上去（只有 --publish always 那条命令会真的发）
+#
+#    发不发一律由命令行的 --publish 显式决定，不留给默认值：默认值在 CI 上
+#    会被隐式设成 onTagOrDraft，而那条「不是 tag 就跳过」的豁免偏偏把 github
+#    排除在外——于是 CI 上不带 tag 跑一次 dist，它照样去建 GitHub publisher，
+#    然后报「GH_TOKEN is not set」。本机永远碰不到，因为本机不是 CI。
+#    （electron-builder 自己也说这套隐式行为 v27 会移除。）
 # 2. 生成 app-update.yml 和 latest.yml——应用内自动更新（src/main/updater.ts）
 #    全靠它们。releaseType 必须显式写成 release：默认是 draft，
 #    而 draft 里的 latest.yml 老师端拉不到——更新会静默地永远查不到新版。

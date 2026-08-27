@@ -193,6 +193,16 @@ tag 一推，[`.github/workflows/release.yml`](.github/workflows/release.yml) �
 `apps/desktop/src/main/updater.ts` 靠 `latest.yml` 对版本、靠 blockmap 只下变过的块
 （近 1 GB 的包，差量是「等得动」和「等不动」的差别）。
 
+**不需要配任何 secret。** 发布用的是 Actions 每次 run 临时铸的 `GITHUB_TOKEN`
+（workflow 里映射成 electron-builder 认的 `GH_TOKEN`），run 一结束就失效，
+比长期有效的 PAT 安全得多。要 PAT 的只有两种情况：发到别的仓库，或者从本机发版
+——后者不建议，发版产物应当来自干净 checkout。
+
+还有一条前提值得记住：**自动更新能用，是因为这个仓库是 public**，
+electron-updater 匿名去拉 Releases 附件。转私有这条链就断，而 publish 段的
+`private: true` 的含义是把 token 打进老师的安装包里——那不是私有分发的解法，
+中继才是（见 [relay/README.md](relay/README.md)）。
+
 想在打 tag 之前先验一遍整条链路，去 Actions 里手工触发 Release（只打包不发布，
 勾上 upload 还能把安装包留成 artifact）。
 
