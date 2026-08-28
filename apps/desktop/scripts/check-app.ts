@@ -68,11 +68,17 @@ async function main(): Promise<void> {
     // 开发形态：用 devDependency 里的 electron 跑 apps/desktop 的 out/。
     // 和打包产物比 externals 的解析路径不同——两种都值得验，但这条快得多，
     // 而且它是控制台程序，崩了能直接看到报错原文。
-    // 二进制路径问 electron 包自己要（它的入口就是返回 path.txt 里那个路径），
-    // 不手写 node_modules/electron/dist/electron.exe：pnpm 的软链布局、不同平台的
-    // 文件名都由它自己算。也不走 .bin/electron.cmd —— Node 从 18.20 起拒绝直接
-    // spawn .cmd（EINVAL），开 shell:true 又会多一层 cmd.exe，退出码和 kill 全走样，
-    // 而这个脚本整个判定就靠退出码。
+    // 二进制路径问 electron 包自己要，不手写 node_modules/electron/dist/electron.exe。
+    //
+    // 两个原因，第二个是被 CI 教的：
+    // 1. pnpm 的软链布局、各平台的可执行文件名，都由它自己算。
+    // 2. 它的入口（index.js 的 getElectronPath）**发现 dist 里没有可执行文件就会
+    //    自己 spawn install.js 把二进制下下来**。runner 上 electron 的 postinstall
+    //    没留下 dist/，硬写路径的版本只能报「找不到」，问它要就当场自愈了。
+    //
+    // 也不走 .bin/electron.cmd —— Node 从 18.20 起拒绝直接 spawn .cmd（EINVAL），
+    // 开 shell:true 又会多一层 cmd.exe，退出码和 kill 全走样，而这个脚本整个判定
+    // 就靠退出码。
     const req = createRequire(import.meta.url)
     try {
       command = req('electron') as unknown as string
