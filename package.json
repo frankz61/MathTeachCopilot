@@ -1,7 +1,7 @@
 {
   "name": "mathteach-copilot",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "初中数学教师 harness 客户端",
   "packageManager": "pnpm@10.28.0",
   "engines": {
