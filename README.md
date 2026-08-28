@@ -163,12 +163,24 @@ pnpm dist
 
 装完是一个普通目录（**没开 asar**），出问题能直接进去看。
 
-打完最值得跑的一步是**拿打包产物验工具链**——开发期一切正常而打包后
-Python 工具进程起不来是真实发生过的：
+打完有两步验证最值钱，都是真实翻过车的地方。一是**拿打包产物验工具链**
+（开发期正常而打包后 Python 工具进程起不来）：
 
 ```bash
 pnpm check apps/desktop/dist/win-unpacked/resources
 ```
+
+二是**把应用真启动一次**：
+
+```bash
+pnpm check:app apps/desktop/dist/win-unpacked/MathTeachCopilot.exe
+```
+
+v0.1.0 就是栽在第二条上——主进程用具名导入引了 CommonJS 的 electron-updater，
+而编译产物是 ESM，装到机器上启动即崩，而类型检查、构建、打包、工具链自检**全绿**。
+Windows 上打包出来是 GUI 子系统程序，崩了只弹个框、stderr 一个字都没有，
+所以判定靠 `MTC_SMOKE=1`：应用初始化完自己退出，没在超时内以 0 退出就是没起来。
+不带参数跑（`pnpm check:app`）验的是 `pnpm build` 出的 out/，几秒钟，CI 每次都跑。
 
 ## 发版
 
@@ -291,6 +303,7 @@ pnpm spike
 | `pnpm py:sync` / `pnpm py:test` | 装工具进程依赖 / 跑 Python 测试 | 否 |
 | `pnpm seed` | 重新生成 examples/ 示例课时（真跑验算） | 否 |
 | `pnpm check` | 工具链自检（能否拉起 Python 工具进程） | 否 |
+| `pnpm check:app` | 启动自检（应用起不起得来，不传参验 out/，传 exe 验打包产物） | 否 |
 | `pnpm check:watch` / `check:lesson` / `check:settings` | 目录监听 / 建课时 / 设置优先级回归 | 否 |
 | `pnpm check:types` / `check:speed` | 题型分布 / 一轮生成耗时账单 | 是 |
 | `pnpm repro` | 复现某课时的一轮生成，逐步打耗时 | 是 |

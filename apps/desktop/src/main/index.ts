@@ -364,6 +364,21 @@ void app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  // 冒烟模式（MTC_SMOKE=1，只有 pnpm check:app 会设）：跑到这一行就说明
+  // 主进程模块图加载了、IPC 注册了、窗口建出来了、updater 初始化没抛——
+  // 立刻退出，用退出码把这件事告诉调用方。
+  //
+  // 为什么非要应用自己报：Windows 上打包出来的是 GUI 子系统程序，**往管道里
+  // 一个字都不写**。启动即崩时它只是弹个错误框在桌面上等着，stderr 是空的、
+  // 进程还活着——从外面看和「正常运行」一模一样。v0.1.0 那个启动即崩的包
+  // 就是这么溜过所有检查发出去的。
+  if (process.env['MTC_SMOKE']) {
+    console.log('[smoke] 启动完成')
+    // 给窗口一点时间真的开始加载，再退。app.exit 而不是 quit：
+    // 不走 before-quit，免得任何一个收尾钩子把冒烟测试挂在那儿
+    setTimeout(() => app.exit(0), 1_000)
+  }
 })
 
 app.on('window-all-closed', () => {

@@ -49,3 +49,13 @@ jobs:
 
       - name: 工具链自检（拉起 Python MCP 工具进程）
         run: pnpm check
+
+      - name: 构建
+        run: pnpm build
+
+      # 启动一次真应用。上面全绿而应用启动即崩是真实发生过的：v0.1.0 里
+      # ESM 主进程用具名导入引了 CommonJS 的 electron-updater，类型检查、构建、
+      # 打包、工具链自检全过，装到机器上一开就弹错误框。
+      # 这道闸放在 CI 而不只是发版，是为了让它在 PR 上就红，而不是发版时才红。
+      - name: 启动自检（应用起不起得来）
+        run: pnpm check:app

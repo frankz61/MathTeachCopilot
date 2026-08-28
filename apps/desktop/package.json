@@ -19,6 +19,7 @@
     "check:speed": "tsx --env-file-if-exists=../../.env scripts/check-speed.ts",
     "check:types": "tsx --env-file-if-exists=../../.env scripts/check-types.ts",
     "check:settings": "tsx scripts/check-settings.ts",
+    "check:app": "tsx scripts/check-app.ts",
     "dist": "electron-vite build && electron-builder --config electron-builder.yml --publish never",
     "dist:dir": "electron-vite build && electron-builder --config electron-builder.yml --dir --publish never",
     "dist:publish": "electron-vite build && electron-builder --config electron-builder.yml --publish always"

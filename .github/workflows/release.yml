@@ -117,6 +117,13 @@ jobs:
         shell: pwsh
         run: pnpm check "$env:GITHUB_WORKSPACE/apps/desktop/dist/win-unpacked/resources"
 
+      # 上一步验的是「工具进程起得来」，这一步验「应用自己起得来」——两回事。
+      # v0.1.0 栽的就是后者：主进程模块图加载失败，工具链再健康也没用。
+      # 打包形态和开发形态的 externals 解析路径不同，所以 CI 里那道闸不能替代这一道。
+      - name: 验打包产物能启动
+        shell: pwsh
+        run: pnpm check:app "$env:GITHUB_WORKSPACE/apps/desktop/dist/win-unpacked/MathTeachCopilot.exe"
+
       - name: 打安装包并发布到 Releases
         if: github.event_name == 'push'
         run: pnpm dist:publish

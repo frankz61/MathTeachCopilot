@@ -24,6 +24,7 @@
     "check:speed": "pnpm --filter @mtc/desktop check:speed",
     "check:types": "pnpm --filter @mtc/desktop check:types",
     "check:settings": "pnpm --filter @mtc/desktop check:settings",
+    "check:app": "pnpm --filter @mtc/desktop check:app",
     "vendor:python": "uv run --project tools-py python tools-py/prepare_vendor.py",
     "vendor:pandoc": "uv run --project tools-py python tools-py/prepare_pandoc.py",
     "dist": "pnpm --filter @mtc/desktop dist",

@@ -18,7 +18,17 @@
  * 到时候换 feed 就行（见 relay/README.md）。
  */
 import { app } from 'electron'
-import { autoUpdater } from 'electron-updater'
+// 默认导入，不能写成 `import { autoUpdater } from 'electron-updater'`。
+//
+// electron-updater 是 CommonJS，而主进程编译出来是 ESM。它的 autoUpdater 还不是
+// 普通导出，是个惰性 getter（第一次访问才按平台 new 出 NsisUpdater），Node 的
+// cjs-module-lexer 静态扫不出来，于是具名导入在**运行时**炸：
+//
+//   SyntaxError: Named export 'autoUpdater' not found
+//
+// 类型检查、构建、打包全都不报——只有真把应用启动起来才炸，而且是启动即崩。
+// 这条已经发出去过一次（v0.1.0），所以 CI 里加了「启动一次真应用」那道闸。
+import electronUpdater from 'electron-updater'
 import type { UpdateState } from '@mtc/shared'
 
 export interface Updater {
@@ -44,6 +54,10 @@ export function initUpdater(onState: (s: UpdateState) => void): Updater {
       install: () => undefined,
     }
   }
+
+  // 放在开发短路之后再取：这个 getter 一访问就 new 出一个 NsisUpdater，
+  // 开发模式下没必要构造它
+  const { autoUpdater } = electronUpdater
 
   let last: UpdateState = { status: 'idle', currentVersion }
   // download-progress 事件里不带版本号，从 update-available 记下来备用
