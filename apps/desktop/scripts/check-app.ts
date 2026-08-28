@@ -30,7 +30,8 @@
  * 不证明：界面可用、功能正常——那要人去点，或者以后上 e2e。
  */
 import { spawn } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -67,11 +68,30 @@ async function main(): Promise<void> {
     // 开发形态：用 devDependency 里的 electron 跑 apps/desktop 的 out/。
     // 和打包产物比 externals 的解析路径不同——两种都值得验，但这条快得多，
     // 而且它是控制台程序，崩了能直接看到报错原文。
-    // 走 node_modules/electron/dist/electron.exe，不走 .bin 里的 electron.cmd：
-    // Node 从 18.20 起拒绝直接 spawn .cmd（EINVAL），要么开 shell:true——
-    // 那样中间多一层 cmd.exe，退出码和 kill 都会走样，而这个脚本全靠退出码判定
-    command = path.join(desktopDir, 'node_modules', 'electron', 'dist', 'electron.exe')
-    if (!existsSync(command)) fail(`找不到 ${command}，先跑 pnpm install`)
+    // 二进制路径问 electron 包自己要（它的入口就是返回 path.txt 里那个路径），
+    // 不手写 node_modules/electron/dist/electron.exe：pnpm 的软链布局、不同平台的
+    // 文件名都由它自己算。也不走 .bin/electron.cmd —— Node 从 18.20 起拒绝直接
+    // spawn .cmd（EINVAL），开 shell:true 又会多一层 cmd.exe，退出码和 kill 全走样，
+    // 而这个脚本整个判定就靠退出码。
+    const req = createRequire(import.meta.url)
+    try {
+      command = req('electron') as unknown as string
+    } catch (e) {
+      fail(`解析不到 electron 包：${e instanceof Error ? e.message : String(e)}`)
+    }
+    if (!existsSync(command)) {
+      // CI 上没法进去翻，把包目录里到底有什么打出来
+      const pkgDir = path.resolve(path.dirname(command), '..')
+      console.error(`electron 包目录：${pkgDir}`)
+      if (existsSync(pkgDir)) console.error(`  内容：${readdirSync(pkgDir).join(' ')}`)
+      const distDir = path.join(pkgDir, 'dist')
+      console.error(
+        existsSync(distDir)
+          ? `  dist/：${readdirSync(distDir).slice(0, 12).join(' ')}`
+          : '  dist/ 不存在——electron 的 postinstall（下二进制那一步）没跑成',
+      )
+      fail(`electron 二进制不在 ${command}`)
+    }
     args = ['.']
     if (!existsSync(path.join(desktopDir, 'out', 'main', 'index.js'))) {
       fail('out/main/index.js 不在，先跑 pnpm build')
