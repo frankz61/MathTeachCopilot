@@ -28,6 +28,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .docx_style import reference_args
 from .export import find_pandoc
 from .homework import figure_lines, option_lines
 
@@ -296,6 +297,7 @@ def export_docx(lesson_dir: str | Path, out_path: str, title: str) -> dict[str, 
         src = Path(tmp) / "design.md"
         src.write_text(md, encoding="utf-8")
         cmd = [pandoc, str(src), "-f", "markdown", "-t", "docx", "-o", str(out), "--resource-path", str(d)]
+        cmd += reference_args(pandoc, Path(tmp))
         try:
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         except subprocess.TimeoutExpired:

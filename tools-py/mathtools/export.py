@@ -16,6 +16,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from .docx_style import reference_args
 from .homework import figure_lines, option_lines
 
 # 随包分发的 pandoc 优先，其次找 PATH。见 vendor/README.md
@@ -116,6 +117,7 @@ def export_docx(
         src = Path(tmp) / "homework.md"
         src.write_text(md, encoding="utf-8")
         cmd = [pandoc, str(src), "-f", "markdown", "-t", "docx", "-o", str(out)]
+        cmd += reference_args(pandoc, Path(tmp))
         if resource_dir:
             cmd += ["--resource-path", resource_dir]
         try:

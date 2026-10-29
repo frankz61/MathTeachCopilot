@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react'
+import { useState, type ReactElement, type ReactNode } from 'react'
 import {
   stageLabel,
   usageOf,
@@ -9,6 +9,7 @@ import {
 } from '@mtc/shared'
 import { Math } from './Math.js'
 import { Figure } from './Figure.js'
+import { ProblemEditor } from './ProblemEditor.js'
 
 /**
  * 教学设计视图。版式照《教学设计与指导》：栏目名做成色块标签，
@@ -143,6 +144,9 @@ function ProblemRef({
       </div>
     )
   }
+  // 例题/练习/检测只在教学设计里露面，所以改题也得在这里改——
+  // 保存走和作业题一样的闸门，会重新验算
+  const [editing, setEditing] = useState(false)
   const status: VerifyStatus | 'unverified' = problem.verify?.status ?? 'unverified'
   const correct = problem.check?.kind === 'choice' ? problem.check.correct : null
   return (
@@ -153,6 +157,9 @@ function ProblemRef({
           {problem.tier} · {problem.type}
         </span>
         <span className="spacer" />
+        <button className="p-act" onClick={() => setEditing((v) => !v)}>
+          {editing ? '收起编辑' : '编辑'}
+        </button>
         <i className={`dot dot-${status}`} title={status} />
       </div>
       <Math>{problem.stem.replace(/!\[[^\]]*\]\([^)]*\)/g, '').trim()}</Math>
@@ -175,6 +182,14 @@ function ProblemRef({
         <span className="label">答案</span>
         <Math>{problem.answer}</Math>
       </div>
+      {editing && (
+        <ProblemEditor
+          problem={problem}
+          lessonId={lessonId}
+          onDone={() => setEditing(false)}
+          onCancel={() => setEditing(false)}
+        />
+      )}
     </div>
   )
 }

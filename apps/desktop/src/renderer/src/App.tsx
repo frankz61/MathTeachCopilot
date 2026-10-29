@@ -106,7 +106,11 @@ export function App(): ReactElement {
     void api()
       .readLesson(id)
       .then((lesson) => {
-        if (id === currentId.current) setCurrent(lesson)
+        if (id !== currentId.current) return
+        setCurrent(lesson)
+        // 打开时落在有内容的那一边：只有作业、还没写教学设计的老课时，
+        // 不该先看到一页空白的教学设计
+        setView(lesson.design || lesson.problems.length === 0 ? 'design' : 'homework')
       })
   }, [])
 
@@ -158,7 +162,7 @@ export function App(): ReactElement {
    * 提示词里带上原题的关键信息，Agent 就不用先去读一遍 problems.json。
    */
   /** 变式的提示词由 VariantDialog 拼好（老师选了数量、方向、分层），这里只管发 */
-  // 「出变式」只在题目 tab 的卡片上有，那时 view 已是 problems，走的就是出题 Skill
+  // 「出变式」只在作业 tab 的题卡上有，那时 view 已是 homework，走的就是出题 Skill
   const variant = useCallback((prompt: string) => run(prompt), [run])
 
   /** 把一张图存进课时目录，交给 Agent 用 Read 看 */

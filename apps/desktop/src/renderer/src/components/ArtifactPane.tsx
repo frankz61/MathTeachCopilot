@@ -15,10 +15,13 @@ import { VariantDialog } from './VariantDialog.js'
 import { api } from '../devFixture.js'
 
 /**
- * 中栏三个 tab。放在 App 里而不是本组件里：右栏发给 Agent 时要按它选 Skill——
- * 老师在看教学设计时说「环节二重写」，走的必须是教学设计那套提示词
+ * 中栏两个 tab。放在 App 里而不是本组件里：右栏发给 Agent 时要按它选 Skill——
+ * 老师在看教学设计时说「环节二重写」，走的必须是教学设计那套提示词。
+ *
+ * 只有「教学设计」和「作业」。例题、练习、检测的题卡直接长在教学设计里，
+ * 不在作业里再露一遍；「作业纸预览」是作业的另一种看法，不是第三个 tab
  */
-export type ArtifactView = 'design' | 'problems' | 'homework'
+export type ArtifactView = 'design' | 'homework'
 
 interface Props {
   lesson: Lesson | null
@@ -62,6 +65,8 @@ export function ArtifactPane({
   onDelete,
   busy,
 }: Props): ReactElement {
+  // 作业 tab 里看题卡还是看排好版的作业纸（homework.md）
+  const [paper, setPaper] = useState(false)
   const [withAnswers, setWithAnswers] = useState(true)
   const [exporting, setExporting] = useState(false)
   const [exportMsg, setExportMsg] = useState<string | null>(null)
@@ -99,7 +104,9 @@ export function ArtifactPane({
   // 例题和课堂练习随教学设计导出，算进来会让「可导出 9」和导出来的 6 道对不上
   const homeworkProblems = lesson.problems.filter((p) => usageOf(p) === '作业')
   const { ok, blocked } = exportableProblems(homeworkProblems)
-  const tally = lesson.problems.reduce<Record<Status, number>>(
+  // 教学设计引用的例题/练习/检测，作业 tab 里不列，只提一句它们在哪
+  const inDesign = lesson.problems.length - homeworkProblems.length
+  const tally = homeworkProblems.reduce<Record<Status, number>>(
     (acc, p) => {
       const key: Status = p.verify?.status ?? 'unverified'
       acc[key] += 1
@@ -118,17 +125,11 @@ export function ArtifactPane({
           教学设计
         </button>
         <button
-          className={tab === 'problems' ? 'tab active' : 'tab'}
-          onClick={() => setTab('problems')}
-        >
-          题目
-          <span className="count tabular">{lesson.problems.length}</span>
-        </button>
-        <button
           className={tab === 'homework' ? 'tab active' : 'tab'}
           onClick={() => setTab('homework')}
         >
           作业
+          <span className="count tabular">{homeworkProblems.length}</span>
         </button>
 
         <span className="spacer" />
@@ -193,7 +194,7 @@ export function ArtifactPane({
       </div>
 
       {/* 汇总单独一条：工具栏里放不下（中栏只有 500 多像素，tab + 导出控件已经占满） */}
-      {tab !== 'design' && lesson.problems.length > 0 && (
+      {tab === 'homework' && homeworkProblems.length > 0 && (
         <div className="status-strip tabular">
           <span>
             作业可导出 <b>{ok.length}</b> / {homeworkProblems.length}
@@ -245,27 +246,44 @@ export function ArtifactPane({
                 还没有教学设计。在右栏说「写这节课的教学设计」，或先拍一页教材传上去。
               </p>
             )
-          ) : tab === 'problems' ? (
-            lesson.problems.length === 0 ? (
-              <p className="empty">还没有题目。在右栏让 Agent 出一组。</p>
-            ) : (
-              lesson.problems.map((p, i) => (
-              <ProblemCard
-                key={p.id}
-                problem={p}
-                index={i + 1}
-                lessonId={lesson.meta.id}
-                busy={busy}
-                varying={varying === p.id}
-                onVariant={() => setVariantFor(p)}
-                onDelete={() => onDelete(p.id)}
-              />
-            ))
-            )
-          ) : lesson.homework ? (
-            <HomeworkView source={lesson.homework} />
           ) : (
-            <p className="empty">还没有 homework.md。</p>
+            <>
+              <div className="view-switch" role="group" aria-label="作业的看法">
+                <button className={paper ? '' : 'on'} onClick={() => setPaper(false)}>
+                  题卡
+                </button>
+                <button className={paper ? 'on' : ''} onClick={() => setPaper(true)}>
+                  作业纸预览
+                </button>
+                {inDesign > 0 && (
+                  <span className="view-note">
+                    另有 {inDesign} 道例题/练习/检测在教学设计里
+                  </span>
+                )}
+              </div>
+              {paper ? (
+                lesson.homework ? (
+                  <HomeworkView source={lesson.homework} />
+                ) : (
+                  <p className="empty">还没有 homework.md。</p>
+                )
+              ) : homeworkProblems.length === 0 ? (
+                <p className="empty">还没有作业题。在右栏让 Agent 出一组。</p>
+              ) : (
+                homeworkProblems.map((p, i) => (
+                  <ProblemCard
+                    key={p.id}
+                    problem={p}
+                    index={i + 1}
+                    lessonId={lesson.meta.id}
+                    busy={busy}
+                    varying={varying === p.id}
+                    onVariant={() => setVariantFor(p)}
+                    onDelete={() => onDelete(p.id)}
+                  />
+                ))
+              )}
+            </>
           )}
         </div>
       </div>
