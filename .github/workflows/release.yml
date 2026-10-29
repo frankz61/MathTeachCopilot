@@ -124,18 +124,19 @@ jobs:
         shell: pwsh
         run: pnpm check:app "$env:GITHUB_WORKSPACE/apps/desktop/dist/win-unpacked/MathTeachCopilot.exe"
 
-      - name: 打安装包并发布到 Releases
-        if: github.event_name == 'push'
-        run: pnpm dist:publish
-        env:
-          # electron-builder 认这个名字；用 Actions 自带的 token，不用配 secret
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      # 两种触发都只打包、不发布。发布在后面单独一步，等三件套验齐了再做。
+      #
+      # 不再用 electron-builder 的 --publish always：它并发上传安装包、blockmap、
+      # latest.yml，每个上传各自「按 tag 找 Release，找不到就建」。发版时 Release
+      # 还不存在，于是并发建出两个同名 Release——v0.1.0 和 v0.1.1 都是这样，
+      # 一个只有 blockmap，另一个有安装包和 latest.yml，而 GitHub 认的「最新」
+      # 恰好是只有 blockmap 的那个，老师端的自动更新就读不到 latest.yml。
+      #
       # dist 脚本里写死了 --publish never。不写的话，CI 上没有 tag 也会被隐式
       # 设成 onTagOrDraft，然后为了查「有没有 draft」去建 GitHub publisher，
       # 没 token 就整个失败——本机跑一万遍都碰不到（见 electron-builder.yml）。
-      - name: 只打安装包，不发布（手工触发）
-        if: github.event_name != 'push'
+      # latest.yml 不靠发布才生成，publish 段在就会出。
+      - name: 打安装包
         run: pnpm dist
 
       # latest.yml 是老师端自动更新的入口（electron-updater 拿它对版本）。它由
@@ -160,6 +161,26 @@ jobs:
             }
           }
           Write-Host "自动更新三件套齐了：latest.yml + 安装包 + blockmap（v$ver）"
+
+      # 一条命令建 Release 并带上全部三个文件，Release 只会有一个。
+      # 放在三件套校验之后：缺了 latest.yml 的版本发出去，自动更新会静默断掉。
+      # 不加 --draft：草稿里的 latest.yml 老师端拉不到。
+      # tag 名走环境变量，理由同上面的版本校验。
+      - name: 发布到 Releases
+        if: github.event_name == 'push'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          $ver = $env:TAG -replace '^v', ''
+          $dist = 'apps/desktop/dist'
+          gh release create $env:TAG `
+            "$dist/MathTeachCopilot-$ver-setup.exe" `
+            "$dist/MathTeachCopilot-$ver-setup.exe.blockmap" `
+            "$dist/latest.yml" `
+            --title $ver --generate-notes --verify-tag
+          if ($LASTEXITCODE -ne 0) { throw "gh release create 失败" }
 
       - name: 上传安装包为 artifact
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload }}

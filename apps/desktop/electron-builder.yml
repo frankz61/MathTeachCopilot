@@ -1,4 +1,5 @@
-# 打包配置。跑法：pnpm dist（本地只打包不发布）；CI 发版走 pnpm dist:publish
+# 打包配置。跑法：pnpm dist（只打包不发布）。CI 发版也是 pnpm dist，
+# 再由 release.yml 用 gh release create 一次性建 Release、传三件套
 #
 # 前置：先跑 pnpm vendor:python 准备随包分发的 Python 运行时，
 # 并把 pandoc.exe 放在 vendor/pandoc/ 下（见 vendor/README.md）。
@@ -8,7 +9,9 @@ productName: MathTeachCopilot
 copyright: MathTeachCopilot
 
 # 发布到 GitHub Releases。作用有两个：
-# 1. CI 打 tag 后把安装包传上去（只有 --publish always 那条命令会真的发）
+# 1. 不再用它发布。--publish always 会并发上传三个文件、各自建 Release，
+#    v0.1.0 / v0.1.1 因此各有两个同名 Release。发布改由 release.yml 做，
+#    这里的 --publish 一律是 never。
 #
 #    发不发一律由命令行的 --publish 显式决定，不留给默认值：默认值在 CI 上
 #    会被隐式设成 onTagOrDraft，而那条「不是 tag 就跳过」的豁免偏偏把 github

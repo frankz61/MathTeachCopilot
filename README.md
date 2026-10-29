@@ -207,8 +207,12 @@ tag 一推，[`.github/workflows/release.yml`](.github/workflows/release.yml) �
 `apps/desktop/src/main/updater.ts` 靠 `latest.yml` 对版本、靠 blockmap 只下变过的块
 （近 1 GB 的包，差量是「等得动」和「等不动」的差别）。
 
+三件套由 `gh release create` **一条命令**连同 Release 一起建出来，不用 electron-builder
+的 `--publish always`：后者并发上传三个文件、各自「找不到 Release 就建一个」，
+v0.1.0 和 v0.1.1 因此各有两个同名 Release，GitHub 认的「最新」还是只有 blockmap 的那个。
+
 **不需要配任何 secret。** 发布用的是 Actions 每次 run 临时铸的 `GITHUB_TOKEN`
-（workflow 里映射成 electron-builder 认的 `GH_TOKEN`），run 一结束就失效，
+（workflow 里映射成 gh 认的 `GH_TOKEN`），run 一结束就失效，
 比长期有效的 PAT 安全得多。要 PAT 的只有两种情况：发到别的仓库，或者从本机发版
 ——后者不建议，发版产物应当来自干净 checkout。
 

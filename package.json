@@ -29,7 +29,6 @@
     "vendor:pandoc": "uv run --project tools-py python tools-py/prepare_pandoc.py",
     "dist": "pnpm --filter @mtc/desktop dist",
     "dist:dir": "pnpm --filter @mtc/desktop dist:dir",
-    "dist:publish": "pnpm --filter @mtc/desktop dist:publish",
     "icon": "uv run --project tools-py python tools-py/make_icon.py",
     "bump": "node scripts/bump-version.mjs"
   },
