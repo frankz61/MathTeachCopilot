@@ -35,20 +35,8 @@ import { loadDotEnv } from './config.js'
  */
 export const DEFAULT_MODEL = 'glmcn/glm-5.3'
 
-/**
- * 图模型没填时用它。
- *
- * illustration.py 里有同样一个默认值，看着像重复，但两边都需要：
- * Python 那份服务「脱离客户端直接跑工具」（测试、cli），这份服务界面——
- * 界面必须**显示**出实际会用哪个，否则老师看到一个空框，
- * 没法判断插图是用什么画的。两边不一致时以这份为准，因为它会显式转发过去。
- */
-export const DEFAULT_IMAGE_MODEL = 'codex/gpt-5.6-luna'
-
 /** baseUrl 留空时打到哪 */
 const OFFICIAL_API = 'https://api.anthropic.com'
-
-const EMPTY: LlmSettings = { baseUrl: '', apiKey: '', model: '', imageModel: '' }
 
 export function settingsFile(userDataDir: string): string {
   return path.join(userDataDir, 'settings.json')
@@ -67,7 +55,6 @@ function readFile(userDataDir: string): Partial<LlmSettings> {
       baseUrl: pick('baseUrl'),
       apiKey: pick('apiKey'),
       model: pick('model'),
-      imageModel: pick('imageModel'),
     }
   } catch {
     // 文件坏了不要崩，也不要静默当成空——当成空会让老师以为设置丢了，
@@ -83,7 +70,6 @@ export function writeSettings(userDataDir: string, s: LlmSettings): void {
     baseUrl: s.baseUrl.trim().replace(/\/+$/, ''),
     apiKey: s.apiKey.trim(),
     model: s.model.trim(),
-    imageModel: s.imageModel.trim(),
   }
   writeFileSync(file, JSON.stringify(body, null, 2), 'utf-8')
 }
@@ -121,15 +107,13 @@ export function resolveEffective(userDataDir: string, repoRoot: string): Effecti
   const [baseUrl, baseUrlFrom] = pick('baseUrl', 'ANTHROPIC_BASE_URL')
   const [apiKey, apiKeyFrom] = pick('apiKey', 'ANTHROPIC_API_KEY')
   const [model, modelFrom] = pick('model', 'MTC_MODEL', DEFAULT_MODEL)
-  const [imageModel, imageModelFrom] = pick('imageModel', 'MTC_IMAGE_MODEL', DEFAULT_IMAGE_MODEL)
 
   return {
-    settings: { baseUrl, apiKey, model, imageModel },
+    settings: { baseUrl, apiKey, model },
     source: {
       baseUrl: baseUrlFrom,
       apiKey: apiKeyFrom,
       model: modelFrom,
-      imageModel: imageModelFrom,
     },
     // 只要求 apiKey：baseUrl 留空走官方 API 是合法的，model 有默认值
     configured: apiKey.trim().length > 0,

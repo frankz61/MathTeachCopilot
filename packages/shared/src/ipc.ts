@@ -4,7 +4,6 @@ import type { Problem } from './problem.js'
 import type { Curriculum } from './curriculum.js'
 import type {
   EffectiveSettings,
-  ImageModelList,
   LlmSettings,
   LlmTestResult,
   Preferences,
@@ -29,7 +28,6 @@ export const IPC = {
   getSettings: 'settings:get',
   saveSettings: 'settings:save',
   testLlm: 'settings:testLlm',
-  listImageModels: 'settings:listImageModels',
   getPreferences: 'prefs:get',
   savePreferences: 'prefs:save',
   checkForUpdates: 'update:check',
@@ -205,13 +203,6 @@ export interface MtcApi {
    * 三种都只会在真正出题时才暴露，那时候老师已经等了几分钟。
    */
   testLlm(s: LlmSettings): Promise<LlmTestResult>
-  /**
-   * 问网关有哪些图模型。只是一次 GET，不出图、不花钱。
-   *
-   * 图模型名没法猜（`codex/gpt-5.6-luna` 这种），填错的唯一症状是
-   * 四十秒后一个 400。列出来让老师点，比让他背一个名字靠谱。
-   */
-  listImageModels(s: LlmSettings): Promise<ImageModelList>
   /** 界面偏好（教材版本）。读不到时主进程回默认值，不会失败 */
   getPreferences(): Promise<Preferences>
   /**

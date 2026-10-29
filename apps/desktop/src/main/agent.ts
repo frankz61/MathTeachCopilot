@@ -239,8 +239,22 @@ export function runAgent(opts: RunOptions): RunHandle {
   const { onEvent } = opts
   const config = resolveModelConfig(opts.configRoot, opts.modelConfig)
 
+  // 网关不支持那个图模型时（imageModel 为空，见 illustration.ts），这一轮把插图工具整个拿掉。
+  // 只在提示词里说「别用」不够：工具还在，模型照样会调，然后等四十秒拿一个 400
+  const illustration = Boolean(config.imageModel)
+  const ILLUSTRATION_TOOL = 'mcp__mathtools__render_illustration'
+  const allowedTools = illustration
+    ? skill.allowedTools
+    : skill.allowedTools.filter((t) => t !== ILLUSTRATION_TOOL)
+  const disallowedTools = illustration
+    ? skill.disallowedTools
+    : [...skill.disallowedTools, ILLUSTRATION_TOOL]
+  const prompt = buildPrompt(opts.prompt, opts.lesson, opts.attachments)
+
   const q = query({
-    prompt: buildPrompt(opts.prompt, opts.lesson, opts.attachments),
+    prompt: illustration
+      ? prompt
+      : `这一轮没有情境插图（render_illustration 不可用），需要配图的一律用 render_figure，生活场景就不配图。\n\n${prompt}`,
     options: {
       cwd: opts.lessonDir,
       // 换模型不用改代码，配合中继就是完整的模型可替换接缝
@@ -256,8 +270,8 @@ export function runAgent(opts: RunOptions): RunHandle {
 
       // 白名单授权，不用 bypassPermissions。写文件有 diff 兜底，
       // 但导出这类动作的闸门在 Python 工具层，不靠权限模式。
-      allowedTools: skill.allowedTools,
-      disallowedTools: skill.disallowedTools,
+      allowedTools,
+      disallowedTools,
       permissionMode: 'default',
 
       // 把生效配置一并交给工具进程：render_illustration 要调网关的图接口，

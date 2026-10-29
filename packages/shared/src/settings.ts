@@ -15,25 +15,12 @@ export interface LlmSettings {
   apiKey: string
   /** 网关上的模型名或别名 */
   model: string
-  /**
-   * 生图模型的名字或别名，`render_illustration` 用它出情境插图。
-   *
-   * **和 model 是两套名字**：文本模型走 `/v1/messages`，图模型走
-   * `/v1/images/generations`，把 model 那个别名填到这儿只会 400。
-   * 所以不能合并成一项，也不该默认跟着 model 走。
-   *
-   * 留空用默认值。见 architecture.md §4.20。
-   */
-  imageModel: string
+  // 没有图模型这一项：它不给老师看、也不让改。用哪个由主进程写死，
+  // 网关支不支持在生成前自动探测，见 apps/desktop/src/main/illustration.ts
 }
 
 /**
- * 网关上有哪些图模型。
- *
- * 单独有这个是因为图模型名没法猜：老师不可能知道要填 `codex/gpt-5.6-luna`，
- * 而填错的唯一症状是四十秒后一个 400——那时候他已经在等出图了，
- * 报出来的错还完全指不到设置页。列一次是免费的（GET，不出图），
- * 所以让他从列表里点，而不是靠背。
+ * 网关上有哪些图模型。主进程探测情境插图能不能用时查它（GET，不出图）。
  */
 export interface ImageModelList {
   ok: boolean
@@ -101,12 +88,6 @@ export function settingsWarnings(s: LlmSettings): string[] {
   }
   if (!s.model.trim()) {
     out.push('没填模型名，会用默认值 glmcn/glm-5.3')
-  }
-  // imageModel 不校验「填没填」：留空有默认值，而且大多数课根本用不到插图。
-  // 但填成文本模型的名字是**确定错的**——图接口上不存在那个别名，
-  // 症状是四十秒后一个 400，值得当场提醒。
-  if (s.imageModel.trim() && s.imageModel.trim() === s.model.trim()) {
-    out.push('图模型和文本模型填成了同一个名字，图接口上多半没有这个别名')
   }
   return out
 }

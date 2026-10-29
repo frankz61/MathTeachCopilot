@@ -438,14 +438,11 @@ const startUnconfigured =
   typeof location !== 'undefined' && new URLSearchParams(location.search).has('unconfigured')
 
 let devSettings: LlmSettings = startUnconfigured
-  ? { baseUrl: '', apiKey: '', model: '', imageModel: '' }
+  ? { baseUrl: '', apiKey: '', model: '' }
   : {
       baseUrl: 'https://kittycat.example.top:12580',
       apiKey: 'sk-dev-fixture',
       model: 'auto/claude-sonnet',
-      // 留空：这样浏览器里默认看到的就是「来自默认值」那个状态，
-      // 而它才是老师最常见的状态——大多数人不会去改图模型
-      imageModel: '',
     }
 
 const DEV_SETTINGS_PATH = 'C:/Users/demo/AppData/Roaming/MathTeachCopilot/settings.json'
@@ -463,13 +460,11 @@ function devEffective(s: LlmSettings): EffectiveSettings {
     settings: {
       ...s,
       model: s.model.trim() || 'glmcn/glm-5.3',
-      imageModel: s.imageModel.trim() || 'codex/gpt-5.6-luna',
     },
     source: {
       baseUrl: from(s.baseUrl),
       apiKey: from(s.apiKey),
       model: from(s.model, 'glmcn/glm-5.3'),
-      imageModel: from(s.imageModel, 'codex/gpt-5.6-luna'),
     },
     configured: s.apiKey.trim().length > 0,
     filePath: DEV_SETTINGS_PATH,
@@ -493,23 +488,6 @@ export const devApi: MtcApi = {
     return s.apiKey
       ? { ok: true, ms: 4200, detail: '模型回了「好」' }
       : { ok: false, detail: '没填 API Key' }
-  },
-  // 名字照抄真网关列出来的那五个：假数据太短太整齐的话，
-  // 界面上那排 chip 换不换行、长名字会不会撑破弹窗，在浏览器里就验不出来
-  listImageModels: async (s) => {
-    await new Promise((r) => setTimeout(r, 500))
-    if (!s.apiKey) return { ok: false, detail: '没填 API Key' }
-    if (!s.baseUrl) {
-      return { ok: false, detail: 'Anthropic 官方 API 没有生图接口。情境插图需要一个提供图模型的网关。' }
-    }
-    const models = [
-      'codex/gpt-5.6-sol',
-      'codex/gpt-5.6-terra',
-      'codex/gpt-5.6-luna',
-      'chatgpt-web/gpt-5.5',
-      'antigravity/gemini-3.1-flash-image',
-    ]
-    return { ok: true, models, detail: `网关上有 ${models.length} 个图模型` }
   },
   // 和主进程一样按教材版本过滤。默认北师版时看不到那节带绿/黄/红的人教版演示课时，
   // 到设置里切到人教版就有了——这样切换本身在浏览器里也验得到
@@ -618,7 +596,6 @@ const STUBS: MtcApi = {
   getSettings: rejecting('getSettings'),
   saveSettings: rejecting('saveSettings'),
   testLlm: rejecting('testLlm'),
-  listImageModels: rejecting('listImageModels'),
   getPreferences: rejecting('getPreferences'),
   savePreferences: rejecting('savePreferences'),
   listLessons: rejecting('listLessons'),

@@ -8,7 +8,7 @@
  * 跑法：
  *   pnpm check:settings
  */
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import {
@@ -16,7 +16,6 @@ import {
   settingsFile,
   writeSettings,
   DEFAULT_MODEL,
-  DEFAULT_IMAGE_MODEL,
 } from '../src/main/settings.js'
 import { settingsWarnings, type LlmSettings } from '@mtc/shared'
 
@@ -57,14 +56,6 @@ function main(): void {
     check('apiKey 来源是 none', e.source.apiKey === 'none', e.source.apiKey)
     check('model 落到默认值', e.settings.model === DEFAULT_MODEL, e.settings.model)
     check('model 来源标成 default', e.source.model === 'default', e.source.model)
-    // 图模型必须有个**显示得出来**的默认值：界面上留空框的话，
-    // 老师没法判断插图到底是用什么画的
-    check(
-      'imageModel 落到默认值',
-      e.settings.imageModel === DEFAULT_IMAGE_MODEL,
-      e.settings.imageModel,
-    )
-    check('imageModel 来源标成 default', e.source.imageModel === 'default', e.source.imageModel)
     check('filePath 指向 userData', e.filePath === settingsFile(userData))
   }
 
@@ -82,7 +73,8 @@ function main(): void {
     check('configured 为 true', e.configured === true)
     check('值来自 .env', e.settings.apiKey === 'sk-dotenv', e.settings.apiKey)
     check('来源标成 dotenv', e.source.baseUrl === 'dotenv', e.source.baseUrl)
-    check('图模型也认 .env', e.settings.imageModel === 'img-dotenv', e.settings.imageModel)
+    // 图模型不再是设置项：.env 里写了也不认，用哪个由 illustration.ts 写死并探测
+    check('.env 里的图模型不进设置', !('imageModel' in e.settings), Object.keys(e.settings).join(','))
   }
 
   console.log('[3/5] 设置文件优先于 .env')
@@ -99,21 +91,35 @@ function main(): void {
       baseUrl: 'https://from-settings',
       apiKey: 'sk-settings',
       model: 'm-settings',
-      imageModel: 'img-settings',
     })
     const e = resolveEffective(userData, repo)
     check('三项都来自设置文件', e.settings.apiKey === 'sk-settings', e.settings.apiKey)
     check('来源标成 settings', e.source.model === 'settings', e.source.model)
-    check('图模型也来自设置文件', e.settings.imageModel === 'img-settings', e.settings.imageModel)
 
     // 只填了一项时，其余各项**各自**回落，而不是整份配置一起回落。
     // 整份回落会造出最难查的一种状态：地址是新的、密钥还是旧的。
-    writeSettings(userData, { baseUrl: 'https://only-url', apiKey: '', model: '', imageModel: '' })
+    writeSettings(userData, { baseUrl: 'https://only-url', apiKey: '', model: '' })
     const e2 = resolveEffective(userData, repo)
     check('没填的项各自回落到 .env', e2.settings.apiKey === 'sk-dotenv', e2.settings.apiKey)
     check('填了的项仍用设置文件', e2.settings.baseUrl === 'https://only-url', e2.settings.baseUrl)
     check('来源逐项不同', e2.source.baseUrl === 'settings' && e2.source.apiKey === 'dotenv')
-    check('图模型回落到 .env', e2.settings.imageModel === 'img-dotenv', e2.settings.imageModel)
+  }
+
+  console.log('[3b] 老版本存下的图模型被丢弃')
+  {
+    // 以前的设置文件里有 imageModel。读的时候不认，下次保存时也不再写回去
+    const userData = tmp('mtc-set-')
+    const repo = tmp('mtc-repo-')
+    writeFileSync(
+      settingsFile(userData),
+      JSON.stringify({ baseUrl: 'https://gw', apiKey: 'k', model: 'm', imageModel: 'codex/old' }),
+      'utf-8',
+    )
+    const e = resolveEffective(userData, repo)
+    check('读设置时不带图模型', !('imageModel' in e.settings), Object.keys(e.settings).join(','))
+    writeSettings(userData, e.settings)
+    const raw = readFileSync(settingsFile(userData), 'utf-8')
+    check('保存后文件里没有 imageModel', !raw.includes('imageModel'), raw)
   }
 
   console.log('[4/5] 写入时的规范化与容错')
@@ -124,7 +130,6 @@ function main(): void {
       baseUrl: '  https://gw.example.com//  ',
       apiKey: '  sk-x  ',
       model: '  m  ',
-      imageModel: '  img  ',
     })
     const e = resolveEffective(userData, repo)
     check('去掉首尾空白', e.settings.apiKey === 'sk-x', JSON.stringify(e.settings.apiKey))
@@ -153,7 +158,6 @@ function main(): void {
       baseUrl: 'https://gw.example.com/v1',
       apiKey: 'k',
       model: 'm',
-      imageModel: '',
     }
     const w = settingsWarnings(bad)
     // 带 /v1 会让 SDK 请求 /v1/v1/messages。宽松的网关容忍、严格的 404，都不该赌
@@ -162,21 +166,10 @@ function main(): void {
       baseUrl: 'https://gw.example.com',
       apiKey: 'k',
       model: 'm',
-      imageModel: '',
     }
     check('正常填写没有警告', settingsWarnings(good).length === 0, settingsWarnings(good).join(' | '))
-    const empty: LlmSettings = { baseUrl: '', apiKey: 'k', model: 'm', imageModel: '' }
+    const empty: LlmSettings = { baseUrl: '', apiKey: 'k', model: 'm' }
     check('地址留空不算问题（走官方 API）', settingsWarnings(empty).length === 0)
-    // 图模型留空是常态（有默认值），不该报警告
-    check('图模型留空不算问题', settingsWarnings({ ...good, imageModel: '' }).length === 0)
-    // 但填成文本模型那个名字是确定错的：图接口上没有那个别名，
-    // 症状是四十秒后一个 400，值得当场提醒
-    const sameName: LlmSettings = { ...good, imageModel: 'm' }
-    check(
-      '图模型和文本模型同名会被警告',
-      settingsWarnings(sameName).some((x) => x.includes('图模型')),
-      settingsWarnings(sameName).join(' | '),
-    )
   }
 
   for (const d of dirs) rmSync(d, { recursive: true, force: true })

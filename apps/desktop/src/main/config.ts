@@ -18,11 +18,9 @@ export interface ModelConfig {
   apiKey?: string
   model?: string
   /**
-   * 生图模型的别名，给 render_illustration 用。
-   *
-   * 和 model 分开是因为网关上这是两套名字：文本走 mathcopilot 这种别名，
-   * 图模型是 codex/gpt-5.6-luna 之类，拿 model 的值去打图接口只会 400。
-   * 没配就用 Python 侧的默认值，不是必填项。
+   * 情境插图用的图模型。**不来自设置或 .env**：主进程生成前探测网关，
+   * 支持固定的那个图模型才填上，不支持就留空——留空表示这一轮不开放插图。
+   * 见 illustration.ts。
    */
   imageModel?: string
 }
@@ -65,7 +63,7 @@ export function resolveModelConfig(repoRoot: string, override: ModelConfig = {})
     baseUrl: override.baseUrl ?? pick('ANTHROPIC_BASE_URL'),
     apiKey: override.apiKey ?? pick('ANTHROPIC_API_KEY') ?? pick('ANTHROPIC_AUTH_TOKEN'),
     model: override.model ?? pick('MTC_MODEL'),
-    imageModel: override.imageModel ?? pick('MTC_IMAGE_MODEL'),
+    imageModel: override.imageModel,
   }
 }
 

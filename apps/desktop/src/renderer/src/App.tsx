@@ -269,7 +269,7 @@ export function App(): ReactElement {
         )}
         <button
           className={settings && !settings.configured ? 'settings-btn need' : 'settings-btn'}
-          title="教材版本、网关地址、API Key、模型、图模型"
+          title="教材版本、网关地址、API Key、模型"
           onClick={() => setSettingsOpen(true)}
         >
           设置

@@ -44,7 +44,6 @@ const api: MtcApi = {
   getSettings: () => ipcRenderer.invoke(IPC.getSettings),
   saveSettings: (s: LlmSettings) => ipcRenderer.invoke(IPC.saveSettings, s),
   testLlm: (s: LlmSettings) => ipcRenderer.invoke(IPC.testLlm, s),
-  listImageModels: (s: LlmSettings) => ipcRenderer.invoke(IPC.listImageModels, s),
   getPreferences: () => ipcRenderer.invoke(IPC.getPreferences),
   savePreferences: (p: Preferences) => ipcRenderer.invoke(IPC.savePreferences, p),
   checkForUpdates: () => ipcRenderer.invoke(IPC.checkForUpdates),

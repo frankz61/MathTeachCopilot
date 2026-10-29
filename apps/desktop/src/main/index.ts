@@ -17,8 +17,9 @@ import { findKnowledgePoint, usageOf } from '@mtc/shared'
 import { runAgent, type RunHandle } from './agent.js'
 import { LessonWatcher } from './watcher.js'
 import { runPyTool } from './pytool.js'
-import { listImageModels, resolveEffective, testLlm, writeSettings } from './settings.js'
+import { resolveEffective, testLlm, writeSettings } from './settings.js'
 import { readPreferences, writePreferences } from './prefs.js'
+import { IMAGE_MODEL, illustrationSupport, warmIllustrationSupport } from './illustration.js'
 import { initUpdater, type Updater } from './updater.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -290,12 +291,14 @@ function registerIpc(): void {
     writeSettings(userDataDir, s)
     // 回写完重新解析再返回：老师填的值可能被 .env 之类的东西盖住（开发期），
     // 直接把他填的原样回显会造成「保存成功但没生效」的错觉
-    return effective()
+    const e = effective()
+    // 换了网关或密钥：提前查好插图能不能用，下一轮生成就不用等
+    warmIllustrationSupport(e.settings)
+    return e
   })
 
   ipcMain.handle(IPC.testLlm, (_e, s: LlmSettings) => testLlm(s))
 
-  ipcMain.handle(IPC.listImageModels, (_e, s: LlmSettings) => listImageModels(s))
 
   ipcMain.handle(IPC.getPreferences, () => readPreferences(userDataDir))
   ipcMain.handle(IPC.savePreferences, (_e, p: Preferences) => writePreferences(userDataDir, p))
@@ -351,14 +354,19 @@ function registerIpc(): void {
     let lastSummary = ''
     let lastOk: boolean | null = null
 
+    // 第一轮可能要等这一次 GET（最多 20 秒），之后走缓存；启动时已经提前查过一次
+    const illustration = await illustrationSupport(cfg.settings)
+    if (!illustration.ok) console.log(`[mtc] 这一轮不开放情境插图：${illustration.reason}`)
+
     const handle = runAgent({
       lessonDir: workspace.resolve(req.lessonId),
       skillId: req.skill,
       prompt: req.prompt,
       baseDir,
       configRoot,
-      // 显式传：设置界面是老师最近一次的明确选择，优先于 .env 和进程环境
-      modelConfig: cfg.settings,
+      // 显式传：设置界面是老师最近一次的明确选择，优先于 .env 和进程环境。
+      // 图模型不在设置里：网关支持那一个才带上，不支持就留空、这轮不开放插图
+      modelConfig: { ...cfg.settings, imageModel: illustration.ok ? IMAGE_MODEL : undefined },
       curriculumDir,
       lesson: lesson
         ? {
@@ -437,6 +445,7 @@ if (process.platform === 'win32') app.setAppUserModelId('top.frankzhangs.mathtea
 void app.whenReady().then(() => {
   registerIpc()
   createWindow()
+  warmIllustrationSupport(effective().settings)
   // 更新状态往当前窗口推；updater 在开发模式下自动短路成 status='dev'
   updater = initUpdater((s) => win?.webContents.send(IPC.updateState, s))
   app.on('activate', () => {

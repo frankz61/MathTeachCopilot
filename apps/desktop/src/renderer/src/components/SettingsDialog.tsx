@@ -3,7 +3,6 @@ import {
   TEXTBOOKS,
   settingsWarnings,
   type EffectiveSettings,
-  type ImageModelList,
   type LlmSettings,
   type LlmTestResult,
   type Preferences,
@@ -26,9 +25,9 @@ import { api } from '../devFixture.js'
  * 3. **把往返耗时报出来。** 这个网关实测有 1.2~10.6 秒的每请求固定开销
  *    （见 architecture.md §4.15）。测出 8 秒，老师就知道后面出一组题会慢，
  *    而不是以为软件卡死了。
- * 4. **图模型能列出来点，不用背。** 名字长这样：`codex/gpt-5.6-luna`，
- *    没人猜得到；填错的唯一症状是四十秒后一个 400，那时候老师正等着插图。
- *    列一次是免费的 GET，不出图。
+ *
+ * 没有图模型这一项：它不给老师看也不让改，主进程生成前自己探测网关，
+ * 见 src/main/illustration.ts。
  */
 
 const SOURCE_LABEL: Record<SettingsSource, string> = {
@@ -111,14 +110,10 @@ export function SettingsDialog({
     baseUrl: '',
     apiKey: '',
     model: '',
-    imageModel: '',
   })
   const [showKey, setShowKey] = useState(false)
   const [testing, setTesting] = useState(false)
   const [test, setTest] = useState<LlmTestResult | null>(null)
-  const [listing, setListing] = useState(false)
-  const [imageModels, setImageModels] = useState<ImageModelList | null>(null)
-  const [showImageModel, setShowImageModel] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -149,9 +144,6 @@ export function SettingsDialog({
     // 改了任何一项，上一次的测试结果就不再代表当前填的内容了
     setTest(null)
     setSavedAt(null)
-    // 但图模型清单只取决于地址和密钥。改别的项还清掉它的话，
-    // 点一下清单里的名字，清单自己就消失了——正好在他要用的时候
-    if ('baseUrl' in patch || 'apiKey' in patch) setImageModels(null)
   }
 
   const warnings = settingsWarnings(form)
@@ -166,15 +158,6 @@ export function SettingsDialog({
       .finally(() => setTesting(false))
   }
 
-  const doListImageModels = (): void => {
-    setListing(true)
-    setImageModels(null)
-    void api()
-      .listImageModels(form)
-      .then(setImageModels)
-      .catch((e: unknown) => setImageModels({ ok: false, detail: String(e) }))
-      .finally(() => setListing(false))
-  }
 
   const doSave = (): void => {
     setSaving(true)
@@ -277,71 +260,6 @@ export function SettingsDialog({
           />
         </label>
 
-        {/* 图模型默认收起：只有应用题的情境插图用它，留空就有默认值，
-            绝大多数老师一辈子不用碰。摊在这里只会让人以为非填不可 */}
-        <button
-          className="paths-toggle"
-          aria-expanded={showImageModel}
-          onClick={() => setShowImageModel((v) => !v)}
-        >
-          <span className="chev">▶</span>
-          高级：情境插图用的图模型
-        </button>
-
-        {showImageModel && (
-          <>
-            <label className="ed-row">
-              <span className="ed-label">
-                图模型
-                {loaded && <SourceTag from={loaded.source.imageModel} />}
-              </span>
-              <span className="key-field">
-                <input
-                  value={form.imageModel}
-                  placeholder="留空用默认值"
-                  spellCheck={false}
-                  onChange={(e) => set({ imageModel: e.target.value })}
-                />
-                <button className="p-act" disabled={listing} onClick={doListImageModels}>
-                  {listing ? '查询中…' : '看看有哪些'}
-                </button>
-              </span>
-            </label>
-
-            {imageModels && (
-              <div className={imageModels.ok ? 'test-result ok' : 'test-result bad'}>
-                {imageModels.ok && imageModels.models ? (
-                  <>
-                    <strong>{imageModels.detail}</strong>
-                    <div className="model-chips">
-                      {imageModels.models.map((m) => (
-                        <button
-                          key={m}
-                          className={`chip${form.imageModel === m ? ' on' : ''}`}
-                          onClick={() => set({ imageModel: m })}
-                        >
-                          {m}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="test-detail">点一个填进上面的框。这些名字和文本模型不通用。</div>
-                  </>
-                ) : (
-                  <>
-                    <strong>没查到图模型</strong>
-                    {imageModels.detail && <div className="test-detail">{imageModels.detail}</div>}
-                  </>
-                )}
-              </div>
-            )}
-
-            <p className="ed-note">
-              图模型只用来画应用题的<strong>生活场景插图</strong>。函数图象、几何图、统计图不走它——
-              那些要和题干条件同源、能被机器校验，由本机的绘图工具画（见 architecture.md §4.20）。
-              出一张插图约 40 秒。
-            </p>
-          </>
-        )}
 
         {warnings.length > 0 && (
           <ul className="ed-errors warn">

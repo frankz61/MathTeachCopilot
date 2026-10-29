@@ -36,8 +36,9 @@ from pathlib import Path
 from typing import Any
 
 # 网关上 type=image 的模型（GET /v1/images/generations 可以列出来）。
-# 默认这个是实测出图质量和耗时都可接受的一档：1024x1024 约 38 秒。
-DEFAULT_MODEL = "codex/gpt-5.6-luna"
+# 和主进程 apps/desktop/src/main/illustration.ts 的 IMAGE_MODEL 是同一个：
+# 客户端里由主进程探测过网关支持才转发进来；这份只服务脱离客户端直接跑工具（测试、cli）
+DEFAULT_MODEL = "antigravity/gemini-3.1-flash-image"
 
 # 网关声明的尺寸，传别的会被上游拒绝
 SUPPORTED_SIZES = ("1024x1024", "1024x1536", "1536x1024")

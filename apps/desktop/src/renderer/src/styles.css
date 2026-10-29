@@ -1270,8 +1270,7 @@ input {
   color: inherit;
 }
 
-/* 网关上的图模型清单。名字长这样：codex/gpt-5.6-luna——等宽字体读起来才不费劲，
-   而且必须能换行：五六个别名一行放不下，横向滚动在弹窗里更难点。 */
+/* 一排可选的小块（设置里的教材版本）。必须能换行，横向滚动在弹窗里很难点 */
 .model-chips {
   display: flex;
   flex-wrap: wrap;
