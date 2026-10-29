@@ -89,8 +89,14 @@ nsis:
   # 学校的机器 C 盘常常很小，而这个包不小
   oneClick: false
   allowToChangeInstallationDirectory: true
-  # 装到用户目录，不要求管理员权限——学校机器上老师多半没有管理员账号
+  # 默认「为所有用户安装」：装进 Program Files，要管理员权限（弹 UAC），
+  # 避开用户目录被安全软件或域策略限制带来的权限问题。
+  #
+  # 但不写死成 perMachine: true——那会去掉安装方式那一页，没有管理员账号的老师
+  # （学校机器上很常见）就彻底装不上了。现在那一页还在，只是默认选中「所有用户」，
+  # 没权限的可以自己改选「只为我」。
   perMachine: false
+  selectPerMachineByDefault: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: MathTeachCopilot
