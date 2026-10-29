@@ -6,6 +6,7 @@ import type {
   KnowledgePoint,
   Lesson,
   LessonMeta,
+  Preferences,
   Problem,
   UpdateState,
 } from '@mtc/shared'
@@ -36,6 +37,8 @@ export function App(): ReactElement {
   /** null = 还没读到。读到之前不弹设置窗，否则每次启动都闪一下。 */
   const [settings, setSettings] = useState<EffectiveSettings | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  /** 教材版本。左栏的教材树和课时列表都只显示这一版 */
+  const [prefs, setPrefs] = useState<Preferences | null>(null)
   /** 更新状态。启动时主进程静默查 + 后台下，这里只负责把进展亮出来 */
   const [update, setUpdate] = useState<UpdateState | null>(null)
 
@@ -55,6 +58,10 @@ export function App(): ReactElement {
   useEffect(() => {
     void api().loadCurriculum().then(setCurricula)
     void api().listLessons().then(setLessons)
+    void api()
+      .getPreferences()
+      .then(setPrefs)
+      .catch(() => undefined) // 同 getSettings：缺方法时降级，不叠错误
 
     // 开机自检：没配模型接入的话整个软件的主要功能都用不了，直接把设置窗打开。
     // 只在启动时弹一次——之后靠顶栏那条提示，不反复挡住老师。
@@ -162,6 +169,23 @@ export function App(): ReactElement {
     [current],
   )
 
+  /**
+   * 切了教材版本：左栏两段重新拉。正开着的课时如果属于另一版，一并关掉——
+   * 留着的话顶栏面包屑和中栏还是人教版，左栏却已经找不到它，老师会以为它丢了。
+   */
+  const changePrefs = useCallback((next: Preferences) => {
+    setPrefs(next)
+    void api().loadCurriculum().then(setCurricula)
+    void api().listLessons().then(setLessons)
+    setCurrent((cur) => {
+      if (cur && cur.meta.textbook !== next.textbook) {
+        currentId.current = null
+        return null
+      }
+      return cur
+    })
+  }, [])
+
   const removeProblem = useCallback(
     (problemId: string) => {
       if (!current) return
@@ -222,7 +246,7 @@ export function App(): ReactElement {
         )}
         <button
           className={settings && !settings.configured ? 'settings-btn need' : 'settings-btn'}
-          title="网关地址、API Key、模型、图模型"
+          title="教材版本、网关地址、API Key、模型、图模型"
           onClick={() => setSettingsOpen(true)}
         >
           设置
@@ -279,7 +303,12 @@ export function App(): ReactElement {
       </div>
 
       {settingsOpen && (
-        <SettingsDialog onClose={() => setSettingsOpen(false)} onSaved={setSettings} />
+        <SettingsDialog
+          prefs={prefs}
+          onClose={() => setSettingsOpen(false)}
+          onSaved={setSettings}
+          onPrefsChanged={changePrefs}
+        />
       )}
     </div>
   )

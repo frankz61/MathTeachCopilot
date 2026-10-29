@@ -10,6 +10,7 @@ import {
   type ExportResult,
   type LessonStatus,
   type LlmSettings,
+  type Preferences,
 } from '@mtc/shared'
 import { Workspace, loadCurriculum } from '@mtc/workspace'
 import { findKnowledgePoint } from '@mtc/shared'
@@ -17,6 +18,7 @@ import { runAgent, type RunHandle } from './agent.js'
 import { LessonWatcher } from './watcher.js'
 import { runPyTool } from './pytool.js'
 import { listImageModels, resolveEffective, testLlm, writeSettings } from './settings.js'
+import { readPreferences, writePreferences } from './prefs.js'
 import { initUpdater, type Updater } from './updater.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -155,7 +157,11 @@ function send(lessonId: string, e: AgentEvent): void {
 }
 
 function registerIpc(): void {
-  ipcMain.handle(IPC.listLessons, () => workspace.listLessons())
+  // 只给当前教材版本的课时和各册。另一版的课时文件夹原样留在磁盘上，切回来就在
+  ipcMain.handle(IPC.listLessons, async () => {
+    const { textbook } = readPreferences(userDataDir)
+    return (await workspace.listLessons()).filter((l) => l.textbook === textbook)
+  })
   // 读课时的同时开始监听它的目录：打开哪个就盯哪个，切换时自动换目标
   ipcMain.handle(IPC.readLesson, (_e, lessonId: string) => {
     if (lessonId !== watchedLessonId) {
@@ -164,7 +170,10 @@ function registerIpc(): void {
     }
     return workspace.readLesson(lessonId)
   })
-  ipcMain.handle(IPC.loadCurriculum, () => loadCurriculum(curriculumDir))
+  ipcMain.handle(IPC.loadCurriculum, async () => {
+    const { textbook } = readPreferences(userDataDir)
+    return (await loadCurriculum(curriculumDir)).filter((c) => c.textbook === textbook)
+  })
   ipcMain.handle(IPC.createLesson, (_e, req: CreateLessonRequest) => workspace.ensureLesson(req))
   ipcMain.handle(IPC.readFigure, (_e, lessonId: string, ref: string) =>
     workspace.readFigure(lessonId, ref),
@@ -239,6 +248,9 @@ function registerIpc(): void {
   ipcMain.handle(IPC.testLlm, (_e, s: LlmSettings) => testLlm(s))
 
   ipcMain.handle(IPC.listImageModels, (_e, s: LlmSettings) => listImageModels(s))
+
+  ipcMain.handle(IPC.getPreferences, () => readPreferences(userDataDir))
+  ipcMain.handle(IPC.savePreferences, (_e, p: Preferences) => writePreferences(userDataDir, p))
 
   ipcMain.handle(IPC.checkForUpdates, () =>
     updater ? updater.check() : Promise.resolve({ status: 'dev' } as const),

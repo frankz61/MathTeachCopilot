@@ -16,9 +16,11 @@ import type {
   LessonMeta,
   LlmSettings,
   MtcApi,
+  Preferences,
   SettingsSource,
   UpdateState,
 } from '@mtc/shared'
+import { DEFAULT_TEXTBOOK } from '@mtc/shared'
 
 const meta: LessonMeta = {
   id: '人教九上/25-一元二次方程/02-2-公式法',
@@ -445,13 +447,16 @@ export const devApi: MtcApi = {
     ]
     return { ok: true, models, detail: `网关上有 ${models.length} 个图模型` }
   },
-  listLessons: async () => [
-    // 故意乱序返回：排序是 LessonPane 的职责，不该依赖后端顺序
-    otherLessons[2]!,
-    { ...meta, status: '备课中', updatedAt: new Date(Date.now() - 90_000).toISOString() },
-    otherLessons[0]!,
-    otherLessons[1]!,
-  ],
+  // 和主进程一样按教材版本过滤。默认北师版时看不到那节带绿/黄/红的人教版演示课时，
+  // 到设置里切到人教版就有了——这样切换本身在浏览器里也验得到
+  listLessons: async () =>
+    [
+      // 故意乱序返回：排序是 LessonPane 的职责，不该依赖后端顺序
+      otherLessons[2]!,
+      { ...meta, status: '备课中' as const, updatedAt: new Date(Date.now() - 90_000).toISOString() },
+      otherLessons[0]!,
+      otherLessons[1]!,
+    ].filter((l) => l.textbook === devPrefs.textbook),
   // **必须按 id 返回对应的课时**：都返回同一个的话，current.meta.id 永远不变，
   // 「事件按课时隔离」这类 bug 在浏览器里根本验不出来（踩过一次）。
   readLesson: async (id) => {
@@ -467,7 +472,14 @@ export const devApi: MtcApi = {
     }
   },
   loadCurriculum: async () =>
-    realCurricula.length > 0 ? realCurricula : [fallbackCurriculum],
+    (realCurricula.length > 0 ? realCurricula : [fallbackCurriculum]).filter(
+      (c) => c.textbook === devPrefs.textbook,
+    ),
+  getPreferences: async () => devPrefs,
+  savePreferences: async (p) => {
+    devPrefs = { ...p }
+    return devPrefs
+  },
   // 浏览器里没有文件系统，只回一个假 id 让交互能走通
   createLesson: async (req) => `演示/${req.chapterTitle}/${req.knowledgePointTitle}`,
   readFigure: async () => null,
@@ -496,6 +508,9 @@ export const devApi: MtcApi = {
 }
 
 const listeners = new Set<(lessonId: string, e: AgentEvent) => void>()
+
+/** 浏览器里的偏好只活在内存里，刷新即回默认 */
+let devPrefs: Preferences = { textbook: DEFAULT_TEXTBOOK }
 
 /** 浏览器里的更新状态：恒为 dev。想验「下载中/可安装」的顶栏样式，
  *  把 URL 换成 ?update=ready 这类再刷新，不用改代码。 */
@@ -537,6 +552,8 @@ const STUBS: MtcApi = {
   saveSettings: rejecting('saveSettings'),
   testLlm: rejecting('testLlm'),
   listImageModels: rejecting('listImageModels'),
+  getPreferences: rejecting('getPreferences'),
+  savePreferences: rejecting('savePreferences'),
   listLessons: rejecting('listLessons'),
   readLesson: rejecting('readLesson'),
   loadCurriculum: rejecting('loadCurriculum'),

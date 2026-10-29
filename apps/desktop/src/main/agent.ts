@@ -230,7 +230,16 @@ export function runAgent(opts: RunOptions): RunHandle {
 
       // 把生效配置一并交给工具进程：render_illustration 要调网关的图接口，
       // 凭据不显式传就只能报「没配置」。见 mcp.ts 里 toolEnv 的注释。
-      mcpServers: { mathtools: mathtoolsServer(opts.baseDir, opts.curriculumDir, config) },
+      // 教材版本取课时自己的，不取当前偏好：老师切了版本之后再跑旧课时，
+      // 搜的仍应是那节课所属的版本
+      mcpServers: {
+        mathtools: mathtoolsServer(
+          opts.baseDir,
+          opts.curriculumDir,
+          config,
+          opts.lesson?.meta.textbook,
+        ),
+      },
 
       // 不读教师机器上的 ~/.claude 和项目配置：这是产品，行为必须可预测，
       // 不能被用户本地的 Claude Code 设置意外改变。

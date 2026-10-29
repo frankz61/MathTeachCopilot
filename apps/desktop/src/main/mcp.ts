@@ -63,11 +63,15 @@ export function mathtoolsServer(
   baseDir: string,
   curriculumDir?: string,
   llm?: { baseUrl?: string; apiKey?: string; imageModel?: string },
+  textbook?: string,
 ): StdioMcpServer {
   const env = toolEnv()
   // 教材数据不在课时目录里，Agent 只能靠 lookup_curriculum 查——
   // 这个路径不传，那个工具就是瞎的
   if (curriculumDir) env['MTC_CURRICULUM_DIR'] = curriculumDir
+  // 关键词搜索只在这节课所属的版本里找。不限的话搜「线段」会把人教版的同名
+  // 知识点一起搜出来，Agent 拿另一版的错因和前置去出这一版的题
+  if (textbook) env['MTC_TEXTBOOK'] = textbook
 
   // 凭据显式转发，不指望子进程继承。
   //

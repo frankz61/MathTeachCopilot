@@ -110,3 +110,24 @@ export function settingsWarnings(s: LlmSettings): string[] {
   }
   return out
 }
+
+/**
+ * 教材版本。教材树、课时列表、`lookup_curriculum` 的关键词搜索都只看这一版。
+ *
+ * 一位老师一学期只教一个版本。两版并排摆在左栏，等于每次都要先跳过另一版
+ * 的六册书；Agent 按关键词搜知识点时也会搜出另一版的同名知识点，
+ * 拿人教版的错因去出北师版的题。数据两版都留着，只是不显示——切回来就在。
+ */
+export const TEXTBOOKS = ['北师大版', '人教版'] as const
+export type Textbook = (typeof TEXTBOOKS)[number]
+export const DEFAULT_TEXTBOOK: Textbook = '北师大版'
+
+/**
+ * 界面偏好。和 LlmSettings 分开存，原因有两个：
+ *
+ * - 它没有「设置 > .env > 环境变量」那套来源优先级，硬塞进去只会多出一列没意义的来源标签；
+ * - 两边的保存时机不同。模型接入要填完、测过再点保存，而切教材是点一下就该生效。
+ */
+export interface Preferences {
+  textbook: Textbook
+}

@@ -105,10 +105,15 @@ def lookup(ids: list[str] | None = None, query: str = "", limit: int = 12) -> di
     if query:
         q = query.strip().lower()
         seen = {f["id"] for f in found}
+        # 关键词搜索只在当前课时所属的版本里找（主进程经 MTC_TEXTBOOK 传入）。
+        # 按 id 查和查前置不受限：id 两版不重复，前置关系本来就是跨册的。
+        scope = os.environ.get("MTC_TEXTBOOK", "")
         for b, chapter, kp in flat:
             if len(found) >= limit:
                 break
             if kp["id"] in seen:
+                continue
+            if scope and b.get("textbook") != scope:
                 continue
             haystack = f"{kp['title']}{kp.get('desc', '')}{chapter}".lower()
             if q in haystack:

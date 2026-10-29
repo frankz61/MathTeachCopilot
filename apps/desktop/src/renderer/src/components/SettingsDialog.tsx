@@ -1,10 +1,12 @@
 import { useEffect, useState, type ReactElement } from 'react'
 import {
+  TEXTBOOKS,
   settingsWarnings,
   type EffectiveSettings,
   type ImageModelList,
   type LlmSettings,
   type LlmTestResult,
+  type Preferences,
   type SettingsSource,
   type UpdateState,
 } from '@mtc/shared'
@@ -91,12 +93,18 @@ function UpdateStatusLine({ state }: { state: UpdateState }): ReactElement | nul
 }
 
 export function SettingsDialog({
+  prefs,
   onClose,
   onSaved,
+  onPrefsChanged,
 }: {
+  /** null = 还没读到，版本按钮先不亮 */
+  prefs: Preferences | null
   onClose: () => void
   /** 保存成功后把最新的生效配置交出去，让外面更新「未配置」的提示 */
   onSaved: (e: EffectiveSettings) => void
+  /** 教材版本写盘成功后通知外面重拉左栏 */
+  onPrefsChanged: (p: Preferences) => void
 }): ReactElement {
   const [loaded, setLoaded] = useState<EffectiveSettings | null>(null)
   const [form, setForm] = useState<LlmSettings>({
@@ -182,6 +190,16 @@ export function SettingsDialog({
       .finally(() => setSaving(false))
   }
 
+  // 点一下就存、就生效，不跟下面的「保存」走：那个按钮管的是模型接入，
+  // 老师切完版本不会想到还要去点它，而没点的后果是关掉窗口什么都没变
+  const pickTextbook = (textbook: Preferences['textbook']): void => {
+    if (prefs?.textbook === textbook) return
+    void api()
+      .savePreferences({ ...prefs, textbook })
+      .then(onPrefsChanged)
+      .catch((e: unknown) => setError(String(e)))
+  }
+
   const doCheckUpdate = (): void => {
     void api()
       .checkForUpdates()
@@ -192,7 +210,27 @@ export function SettingsDialog({
   return (
     <div className="modal" onClick={onClose} role="dialog" aria-modal="true">
       <div className="modal-box settings-box" onClick={(e) => e.stopPropagation()}>
-        <h3 className="modal-title">模型接入设置</h3>
+        <h3 className="modal-title">设置</h3>
+
+        <h4 className="ed-section-title">教材版本</h4>
+        <div className="model-chips">
+          {TEXTBOOKS.map((t) => (
+            <button
+              key={t}
+              className={`chip${prefs?.textbook === t ? ' on' : ''}`}
+              disabled={!prefs}
+              onClick={() => pickTextbook(t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <p className="ed-note">
+          左栏的教材和课时只显示这一版，Agent 按关键词查知识点时也只查这一版。
+          另一版的课时文件夹不会删，切回来就在。点一下立即生效。
+        </p>
+
+        <h4 className="ed-section-title">模型接入</h4>
 
         <label className="ed-row">
           <span className="ed-label">

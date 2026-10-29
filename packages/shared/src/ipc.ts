@@ -7,6 +7,7 @@ import type {
   ImageModelList,
   LlmSettings,
   LlmTestResult,
+  Preferences,
 } from './settings.js'
 
 export const IPC = {
@@ -28,6 +29,8 @@ export const IPC = {
   saveSettings: 'settings:save',
   testLlm: 'settings:testLlm',
   listImageModels: 'settings:listImageModels',
+  getPreferences: 'prefs:get',
+  savePreferences: 'prefs:save',
   checkForUpdates: 'update:check',
   installUpdate: 'update:install',
   updateState: 'update:state',
@@ -140,8 +143,10 @@ export type UpdateState =
   | { status: 'error'; currentVersion: string; message: string }
 
 export interface MtcApi {
+  /** 只列当前教材版本的课时（见 Preferences）。别的版本的课时还在磁盘上，只是不显示 */
   listLessons(): Promise<LessonMeta[]>
   readLesson(lessonId: string): Promise<Lesson>
+  /** 只返回当前教材版本的各册 */
   loadCurriculum(): Promise<Curriculum[]>
   /** 已存在则直接返回它的 id，不覆盖已有内容 */
   createLesson(req: CreateLessonRequest): Promise<string>
@@ -201,6 +206,13 @@ export interface MtcApi {
    * 四十秒后一个 400。列出来让老师点，比让他背一个名字靠谱。
    */
   listImageModels(s: LlmSettings): Promise<ImageModelList>
+  /** 界面偏好（教材版本）。读不到时主进程回默认值，不会失败 */
+  getPreferences(): Promise<Preferences>
+  /**
+   * 写偏好并立即生效。之后 loadCurriculum / listLessons 只返回所选版本的内容，
+   * 渲染层要自己重新拉一遍。
+   */
+  savePreferences(p: Preferences): Promise<Preferences>
   /**
    * 立即检查一次更新，返回发起时的状态（进展经 onUpdateState 推过来）。
    *
