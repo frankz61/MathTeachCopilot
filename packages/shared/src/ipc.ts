@@ -39,6 +39,7 @@ export const IPC = {
   interruptAgent: 'agent:interrupt',
   agentEvent: 'agent:event',
   lessonChanged: 'workspace:lessonChanged',
+  openLesson: 'workspace:openLesson',
 } as const
 
 /** 主进程推给 UI 的 agent 事件。刻意收窄，不把 SDK 的原始消息透给渲染层。 */
@@ -246,4 +247,6 @@ export interface MtcApi {
    * 不要靠 agent 的 file 事件来刷新：那是「发起工具调用」的时刻，不是落盘的时刻。
    */
   onLessonChanged(cb: (lessonId: string) => void): () => void
+  /** 主进程要求打开某节课（点了「生成完成」的系统通知） */
+  onOpenLesson(cb: (lessonId: string) => void): () => void
 }

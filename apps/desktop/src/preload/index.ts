@@ -61,6 +61,11 @@ const api: MtcApi = {
     ipcRenderer.on(IPC.agentEvent, listener)
     return () => ipcRenderer.off(IPC.agentEvent, listener)
   },
+  onOpenLesson: (cb: (lessonId: string) => void) => {
+    const listener = (_: unknown, lessonId: string): void => cb(lessonId)
+    ipcRenderer.on(IPC.openLesson, listener)
+    return () => ipcRenderer.off(IPC.openLesson, listener)
+  },
   onLessonChanged: (cb: (lessonId: string) => void) => {
     const listener = (_: unknown, lessonId: string): void => cb(lessonId)
     ipcRenderer.on(IPC.lessonChanged, listener)

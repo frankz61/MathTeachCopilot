@@ -14,6 +14,13 @@ interface Props {
   onInterrupt: () => void
   /** 这一轮会走哪个 Skill。跟着中栏的 tab 走，快捷提问和输入框提示随之切换 */
   skill: SkillKind
+  /**
+   * 别的课时正在生成时，那节课的课时名；否则 null。
+   *
+   * 主进程一次只跑一轮，这边再发只会收到「上一轮还没结束」。与其让老师点了才知道，
+   * 不如直接锁住、说清楚在等哪一节
+   */
+  lockedBy: string | null
 }
 
 /** 老师会说的话，不是程序员的 slash command。见 docs/grok.md 第七节。 */
@@ -59,12 +66,20 @@ export function AgentPane({
   history,
   events,
   busy,
-  disabled,
+  disabled: noLesson,
   onRun,
   onAttach,
   onInterrupt,
   skill,
+  lockedBy,
 }: Props): ReactElement {
+  // 下面所有发起生成的入口都看 disabled，所以「别的课时在生成」并进来就一处都不漏
+  const disabled = noLesson || lockedBy !== null
+  const blockedHint = noLesson
+    ? '先选一个课时'
+    : lockedBy !== null
+      ? `「${lockedBy}」正在生成，完成后才能在这里发起`
+      : null
   const [input, setInput] = useState('')
   const [pending, setPending] = useState<{ ref: string; name: string; url: string }[]>([])
   const [zoom, setZoom] = useState<{ url: string; name: string } | null>(null)
@@ -129,7 +144,7 @@ export function AgentPane({
               <button
                 key={t.id}
                 className="turn"
-                disabled={busy}
+                disabled={busy || disabled}
                 title="点击重新发送这句话"
                 onClick={() => submit(t.prompt)}
               >
@@ -151,7 +166,7 @@ export function AgentPane({
         {idle && (
           <div className="quick">
             <p className="quick-hint">
-              {disabled ? '先选一个课时' : history.length > 0 ? '或者试试：' : '试试这些：'}
+              {blockedHint ?? (history.length > 0 ? '或者试试：' : '试试这些：')}
             </p>
             {QUICK_ASKS[skill].map((q) => (
               <button key={q} disabled={disabled} onClick={() => submit(q)}>
@@ -212,7 +227,7 @@ export function AgentPane({
         <textarea
           value={input}
           disabled={disabled || busy}
-          placeholder={disabled ? '先选一个课时' : PLACEHOLDER[skill]}
+          placeholder={blockedHint ?? PLACEHOLDER[skill]}
           onChange={(e) => setInput(e.target.value)}
           onPaste={(e) => {
             const files = [...e.clipboardData.items]

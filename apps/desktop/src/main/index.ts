@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Notification, shell } from 'electron'
 import {
   IPC,
   type AgentEvent,
@@ -154,6 +154,33 @@ function createWindow(): void {
 
 function send(lessonId: string, e: AgentEvent): void {
   win?.webContents.send(IPC.agentEvent, lessonId, e)
+}
+
+/**
+ * 一轮生成结束，弹系统通知。
+ *
+ * 生成一节教学设计要几分钟，老师不会盯着看，多半切去干别的了。不提醒的话，
+ * 他只能隔一会儿切回来看一眼——还没好就白切，早好了就白等。
+ * 点通知回到应用并打开那节课。窗口不在前台时任务栏图标也闪一下，
+ * 通知被系统的「专注模式」吞掉时还有这个兜底。
+ */
+function notifyDone(req: AgentRunRequest, lessonName: string, ok: boolean | null, summary: string): void {
+  const what = req.skill === 'design' ? '教学设计' : '题目'
+  if (win && !win.isFocused()) win.flashFrame(true)
+  if (!Notification.isSupported()) return
+  const n = new Notification({
+    title: ok ? `「${lessonName}」${what}已生成` : `「${lessonName}」${what}生成没有完成`,
+    body: summary.replace(/\s+/g, ' ').slice(0, 120) || (ok ? '点这里查看' : '点这里看原因'),
+    icon: appIcon,
+  })
+  n.on('click', () => {
+    if (!win) return
+    if (win.isMinimized()) win.restore()
+    win.show()
+    win.focus()
+    win.webContents.send(IPC.openLesson, req.lessonId)
+  })
+  n.show()
 }
 
 function registerIpc(): void {
@@ -394,6 +421,7 @@ function registerIpc(): void {
       if (after !== null && after > problemsBefore) {
         await workspace.setStatus(req.lessonId, '备课中').catch(() => undefined)
       }
+      notifyDone(req, lesson?.meta.lesson ?? req.lessonId, lastOk, lastSummary)
     }
   })
 
@@ -401,6 +429,10 @@ function registerIpc(): void {
     await running?.interrupt()
   })
 }
+
+// Windows 上通知的发送方按 AppUserModelId 认，和安装包快捷方式上的一致
+// （electron-builder.yml 的 appId）。不设的话通知署名是 electron.app.Electron，有的系统还会直接丢掉
+if (process.platform === 'win32') app.setAppUserModelId('top.frankzhangs.mathteachcopilot')
 
 void app.whenReady().then(() => {
   registerIpc()

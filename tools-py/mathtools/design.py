@@ -21,6 +21,7 @@ r"""教学设计（design.json）的写入闸门、渲染和导出。
 
 from __future__ import annotations
 
+import copy
 import json
 import subprocess
 import tempfile
@@ -31,6 +32,7 @@ from typing import Any
 from .docx_style import reference_args
 from .export import find_pandoc
 from .homework import figure_lines, option_lines
+from .mathtext import box_table, normalize, to_markdown, unbalanced
 
 TEXT_KINDS = ("问题", "追问", "情境", "师生活动", "讲解", "过渡语", "评价语", "说明", "设计意图")
 PROBLEM_KIND = "题目"
@@ -185,7 +187,10 @@ def save_design(
         design = {**current, "stages": [stage if s.get("id") == sid else s for s in stages]}
 
     assert design is not None
+    design = copy.deepcopy(design)
     errors = validate(design, problem_ids)
+    autofixed, text_errors = _normalize_texts(design)
+    errors += text_errors
     if errors:
         return {"ok": False, "errors": errors, "written": False}
 
@@ -215,32 +220,80 @@ def save_design(
     }
     if yellow:
         out["note"] = f"引用的题里有 {len(yellow)} 道不是绿色（{'、'.join(yellow)}），需要老师确认"
+    if autofixed:
+        out["autofixed"] = f"已自动修正公式写法：{'；'.join(autofixed)}。以后直接按规范写"
     return out
+
+
+def _normalize_texts(design: dict[str, Any]) -> tuple[list[str], list[str]]:
+    """就地修掉教学设计里所有文字的公式写法问题（见 mathtext.py）。
+
+    返回 (修了什么, 修不了的错误)。修不了的两种：`$` 落单（不知道公式在哪收尾），
+    以及用 +——+ 手画的表格（导出后挤成一行乱码，要改成 Markdown 竖线表格）。
+    """
+    notes: set[str] = set()
+    errs: list[str] = []
+
+    def fix(text: Any, where: str) -> Any:
+        if not isinstance(text, str):
+            return text
+        if unbalanced(text):
+            errs.append(f"{where}里有落单的 $，公式没收尾。每个公式都写成成对的 $...$")
+        if box_table(text):
+            errs.append(
+                f"{where}里用 +——+ 画了表格，导出后会挤成一行。改成 Markdown 竖线表格："
+                f"第一行 | 图形 | 端点数 |，第二行 |---|---|，每行一条，前后各空一行"
+            )
+        fixed, n = normalize(text)
+        notes.update(n)
+        return fixed
+
+    for f, name in (("content", "教学内容"), ("learnerAnalysis", "学情分析"), ("path", "教学路径"),
+                    ("intro", "导入语"), ("boardPlan", "板书设计")):
+        if f in design:
+            design[f] = fix(design[f], name)
+    for o in design.get("objectives") or []:
+        if isinstance(o, dict):
+            o["text"] = fix(o.get("text"), f"教学目标 {o.get('id')} ")
+    for f, name in (("keyPoints", "教学重点"), ("difficulties", "教学难点")):
+        if isinstance(design.get(f), list):
+            design[f] = [fix(x, name) for x in design[f]]
+    for i, s in enumerate(design.get("stages") or []):
+        for j, b in enumerate((s.get("blocks") or []) if isinstance(s, dict) else []):
+            if isinstance(b, dict) and "text" in b:
+                b["text"] = fix(b["text"], f"第 {i + 1} 个环节第 {j + 1} 块")
+    return sorted(notes), errs
 
 
 def render_markdown(design: dict[str, Any], problems: list[dict[str, Any]], title: str) -> str:
     """导出用的 Markdown。标签用粗体，和样例书里蓝字栏目名的作用一样：一眼分得出谁在说话。"""
     by_id = {str(p.get("id")): p for p in problems}
     lines = [f"# {title}", ""]
+    # 每段老师内容都过 to_markdown：公式写法兜底、填空下划线转义、分行和表格保留。
+    # 存盘时已经修过一遍，这里再兜一次是为了修之前存下的旧教案
+    md = to_markdown
 
     def section(name: str, body: list[str]) -> None:
         nonlocal lines
         lines += [f"## {name}", "", *body, ""]
 
-    section("教学内容", [design.get("content", "")])
+    section("教学内容", [md(design.get("content", ""))])
     if design.get("learnerAnalysis"):
-        section("学情分析", [design["learnerAnalysis"]])
-    section("教学目标", [f"{i}. {o['text']}" for i, o in enumerate(design.get("objectives", []), 1)])
+        section("学情分析", [md(design["learnerAnalysis"])])
+    section("教学目标", [f"{i}. {md(o['text'])}" for i, o in enumerate(design.get("objectives", []), 1)])
     section(
         "教学重点与难点",
-        [f"1. 教学重点：{'；'.join(design.get('keyPoints', []))}", f"2. 教学难点：{'；'.join(design.get('difficulties', []))}"],
+        [
+            f"1. 教学重点：{md('；'.join(design.get('keyPoints', [])))}",
+            f"2. 教学难点：{md('；'.join(design.get('difficulties', [])))}",
+        ],
     )
     if design.get("path"):
-        section("教学路径", [design["path"]])
+        section("教学路径", [md(design["path"])])
 
     lines += ["## 教学过程设计", ""]
     if design.get("intro"):
-        lines += [f"**导入语**　{design['intro']}", ""]
+        lines += [f"**导入语**　{md(design['intro'])}", ""]
 
     q = 0
     for i, stage in enumerate(design.get("stages", [])):
@@ -251,24 +304,24 @@ def render_markdown(design: dict[str, Any], problems: list[dict[str, Any]], titl
             if kind == "问题":
                 q += 1
                 follow = 0
-                lines += [f"**问题 {q}**　{b['text']}", ""]
+                lines += [f"**问题 {q}**　{md(b['text'])}", ""]
             elif kind == "追问":
                 follow += 1
-                lines += [f"**追问 {follow}**　{b['text']}", ""]
+                lines += [f"**追问 {follow}**　{md(b['text'])}", ""]
             elif kind == PROBLEM_KIND:
                 p = by_id.get(b.get("problemId", ""))
                 if not p:
                     lines += [f"_（引用的题 {b.get('problemId')} 已被删除）_", ""]
                     continue
-                lines += [f"**{p.get('usage', '作业')}**　{p.get('stem', '')}", ""]
+                lines += [f"**{p.get('usage', '作业')}**　{md(p.get('stem', ''))}", ""]
                 lines += option_lines(p)
                 lines += figure_lines(p)
-                lines += [f"参考答案：{p.get('answer', '')}", ""]
+                lines += [f"参考答案：{md(p.get('answer', ''))}", ""]
             else:
-                lines += [f"**{kind}**　{b.get('text', '')}", ""]
+                lines += [f"**{kind}**　{md(b.get('text', ''))}", ""]
 
     if design.get("boardPlan"):
-        section("板书设计", [design["boardPlan"]])
+        section("板书设计", [md(design["boardPlan"])])
     return "\n".join(lines)
 
 

@@ -231,3 +231,43 @@ class Test统计图:
 
         r = histogram([0, 20, 10], [1, 2], str(tmp_path / "x.svg"))
         assert not r["ok"] and "递增" in r["error"]
+
+
+class Test点名不压线:
+    """共线点中间那个的名字，原来沿着线往外推，正压在线段上。"""
+
+    def test_线段中间的点名放到线的上下方(self) -> None:
+        from mathtools.geometry import label_direction
+
+        pts = {"A": (0.0, 0.0), "B": (2.0, 0.0), "C": (4.0, 0.0)}
+        ux, uy = label_direction("B", pts, [["A", "C"]], [])
+        assert abs(uy) > 0.9, f"B 的名字方向 {(ux, uy)} 还是沿着线"
+
+    def test_四点共线时中间两个都离开线(self) -> None:
+        from mathtools.geometry import label_direction
+
+        pts = {"A": (0.0, 0.0), "B": (1.0, 0.0), "C": (2.0, 0.0), "D": (3.0, 0.0)}
+        segs = [["A", "B"], ["B", "C"], ["C", "D"]]
+        for name in ("B", "C"):
+            assert abs(label_direction(name, pts, segs, [])[1]) > 0.9
+
+    def test_端点的名字仍然朝外(self) -> None:
+        from mathtools.geometry import label_direction
+
+        pts = {"A": (0.0, 0.0), "B": (2.0, 0.0), "C": (4.0, 0.0)}
+        assert label_direction("A", pts, [["A", "C"]], [])[0] < -0.9
+        assert label_direction("C", pts, [["A", "C"]], [])[0] > 0.9
+
+    def test_三角形顶点避开两条边(self) -> None:
+        import math
+
+        from mathtools.geometry import label_direction
+
+        pts = {"A": (0.0, 3.0), "B": (-2.0, 0.0), "C": (2.0, 0.0)}
+        segs = [["A", "B"], ["B", "C"], ["C", "A"]]
+        ux, uy = label_direction("A", pts, segs, [])
+        assert uy > 0.9  # 顶点 A 的名字在上方
+        for other in ("B", "C"):
+            v = (pts[other][0] - pts["A"][0], pts[other][1] - pts["A"][1])
+            cos = (ux * v[0] + uy * v[1]) / math.hypot(*v)
+            assert cos < 0.5

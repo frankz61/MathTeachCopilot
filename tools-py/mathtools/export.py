@@ -18,6 +18,7 @@ from typing import Any
 
 from .docx_style import reference_args
 from .homework import figure_lines, option_lines
+from .mathtext import to_markdown
 
 # 随包分发的 pandoc 优先，其次找 PATH。见 vendor/README.md
 _VENDOR_PANDOC = Path(__file__).resolve().parents[2] / "vendor" / "pandoc" / "pandoc.exe"
@@ -66,7 +67,7 @@ def render_markdown(problems: list[dict[str, Any]], title: str, with_answers: bo
         lines += [f"## {tier_names[tier]}", ""]
         for p in group:
             n += 1
-            lines += [f"**{n}.** {p.get('stem', '')}", ""]
+            lines += [f"**{n}.** {to_markdown(p.get('stem', ''))}", ""]
             lines += option_lines(p)
             lines += figure_lines(p)
 
@@ -76,9 +77,9 @@ def render_markdown(problems: list[dict[str, Any]], title: str, with_answers: bo
         for tier in ("A", "B", "C"):
             for p in [q for q in problems if q.get("tier") == tier]:
                 n += 1
-                lines += [f"**{n}.** 答案：{p.get('answer', '')}", ""]
+                lines += [f"**{n}.** 答案：{to_markdown(p.get('answer', ''))}", ""]
                 for i, step in enumerate(p.get("solution") or [], 1):
-                    lines.append(f"({i}) {step}")
+                    lines.append(f"({i}) {to_markdown(step)}")
                 lines.append("")
     return "\n".join(lines)
 

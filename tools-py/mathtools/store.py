@@ -19,12 +19,14 @@ homework.md 之类的散文产物仍然走 Agent 的 Write/Edit，那里 diff �
 
 from __future__ import annotations
 
+import copy
 import json
 import re
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
+from .mathtext import normalize, unbalanced
 from .verify import (
     VerifyResult,
     verify_choice,
@@ -74,6 +76,13 @@ def _validate(p: dict[str, Any], index: int) -> list[str]:
     if "usage" in p and p["usage"] not in USAGES:
         errs.append(f"{where}的 usage 必须是 {'/'.join(USAGES)} 之一，收到 {p['usage']!r}")
 
+    for field, text in _text_fields(p):
+        if unbalanced(text):
+            errs.append(
+                f"{where}的 {field} 里有落单的 $，公式没收尾。每个公式都要写成成对的 $...$；"
+                f"要表示美元符号写 \\$"
+            )
+
     seed = p.get("variantSeed")
     if seed is not None and not isinstance(seed, dict):
         errs.append(f"{where}的 variantSeed 必须是对象 {{template, params, constraints}}，不是字符串")
@@ -87,6 +96,46 @@ def _validate(p: dict[str, Any], index: int) -> list[str]:
 
     errs.extend(_validate_choice(p, where))
     return errs
+
+
+def _text_fields(p: dict[str, Any]) -> list[tuple[str, str]]:
+    """一道题里会被显示、被导出的文字：题干、答案、选项、解析每一步"""
+    out: list[tuple[str, str]] = []
+    for f in ("stem", "answer"):
+        if isinstance(p.get(f), str):
+            out.append((f, p[f]))
+    if isinstance(p.get("options"), dict):
+        out += [(f"options.{k}", v) for k, v in p["options"].items() if isinstance(v, str)]
+    if isinstance(p.get("solution"), list):
+        out += [(f"solution[{i}]", s) for i, s in enumerate(p["solution"]) if isinstance(s, str)]
+    return out
+
+
+def _normalize_problem(p: dict[str, Any]) -> list[str]:
+    """就地修掉公式写法上确定能修的毛病（见 mathtext.py），返回修了什么。
+
+    在校验和验算**之前**做：多转义的 \\\\times 不修的话，界面上 KaTeX 宽松地照样显示，
+    导出的 Word 里却是一串源码——老师要到打印出来才发现。
+    """
+    notes: set[str] = set()
+    for f in ("stem", "answer"):
+        if isinstance(p.get(f), str):
+            p[f], n = normalize(p[f])
+            notes.update(n)
+    if isinstance(p.get("options"), dict):
+        for k, v in list(p["options"].items()):
+            if isinstance(v, str):
+                p["options"][k], n = normalize(v)
+                notes.update(n)
+    if isinstance(p.get("solution"), list):
+        fixed = []
+        for s in p["solution"]:
+            if isinstance(s, str):
+                s, n = normalize(s)
+                notes.update(n)
+            fixed.append(s)
+        p["solution"] = fixed
+    return sorted(notes)
 
 
 # 选项写进题干的痕迹：'A. '、'A、'、'A．'、'（A）'
@@ -254,6 +303,12 @@ def save_problems(
             existing = []  # 文件不存在或坏了，当成从空开始
 
     errors: list[str] = []
+    # 先修公式写法（不动调用方传进来的对象）。修了什么要告诉模型，下次别再这么写
+    problems = copy.deepcopy(problems)
+    autofixed: set[str] = set()
+    for p in problems:
+        if isinstance(p, dict):
+            autofixed.update(_normalize_problem(p))
     for i, p in enumerate(problems):
         if not isinstance(p, dict):
             errors.append(f"第 {i + 1} 项不是对象")
@@ -339,7 +394,7 @@ def save_problems(
 
     green = sum(1 for p in out if p["verify"]["status"] == "green")
     yellow = len(out) - green
-    return {
+    result = {
         "ok": True,
         "path": str(path),
         "written": len(out),
@@ -348,3 +403,9 @@ def save_problems(
         "yellow": yellow,
         "rejected": rejected,
     }
+    if autofixed:
+        result["autofixed"] = (
+            f"已自动修正公式写法：{'；'.join(sorted(autofixed))}。以后直接按规范写，"
+            f"公式两端紧贴 $、命令只写一个反斜杠、两个公式之间留空格"
+        )
+    return result

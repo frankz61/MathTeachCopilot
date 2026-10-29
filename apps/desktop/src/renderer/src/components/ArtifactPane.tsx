@@ -31,6 +31,8 @@ interface Props {
   onVariant: (prompt: string) => void
   onDelete: (problemId: string) => void
   busy: boolean
+  /** 别的课时正在生成时那节课的名字。「出变式」要发起生成，得锁住；编辑不走 Agent，照常能用 */
+  lockedBy: string | null
 }
 
 type Status = VerifyStatus | 'unverified'
@@ -64,6 +66,7 @@ export function ArtifactPane({
   onVariant,
   onDelete,
   busy,
+  lockedBy,
 }: Props): ReactElement {
   // 作业 tab 里看题卡还是看排好版的作业纸（homework.md）
   const [paper, setPaper] = useState(false)
@@ -277,6 +280,7 @@ export function ArtifactPane({
                     index={i + 1}
                     lessonId={lesson.meta.id}
                     busy={busy}
+                    lockedBy={lockedBy}
                     varying={varying === p.id}
                     onVariant={() => setVariantFor(p)}
                     onDelete={() => onDelete(p.id)}
@@ -296,6 +300,7 @@ function ProblemCard({
   index,
   lessonId,
   busy,
+  lockedBy,
   varying,
   onVariant,
   onDelete,
@@ -304,6 +309,7 @@ function ProblemCard({
   index: number
   lessonId: string
   busy: boolean
+  lockedBy: string | null
   varying: boolean
   onVariant: () => void
   onDelete: () => void
@@ -409,11 +415,13 @@ function ProblemCard({
         </button>
         <button
           className={varying ? 'p-act working-act' : 'p-act'}
-          disabled={busy}
+          disabled={busy || lockedBy !== null}
           title={
-            busy && !varying
-              ? '正在处理上一轮，稍等'
-              : '让 Agent 按这道题的结构再出几道，换数字换问法'
+            lockedBy !== null
+              ? `「${lockedBy}」正在生成，完成后再出变式`
+              : busy && !varying
+                ? '正在处理上一轮，稍等'
+                : '让 Agent 按这道题的结构再出几道，换数字换问法'
           }
           onClick={onVariant}
         >

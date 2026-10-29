@@ -569,8 +569,9 @@ export const devApi: MtcApi = {
     listeners.add(cb)
     return () => listeners.delete(cb)
   },
-  // 浏览器里没有主进程，也就没有文件监听
+  // 浏览器里没有主进程，也就没有文件监听，也没有系统通知
   onLessonChanged: () => () => {},
+  onOpenLesson: () => () => {},
 }
 
 const listeners = new Set<(lessonId: string, e: AgentEvent) => void>()
@@ -638,6 +639,7 @@ const STUBS: MtcApi = {
   interruptAgent: rejecting('interruptAgent'),
   onAgentEvent: noopUnsubscribe,
   onLessonChanged: noopUnsubscribe,
+  onOpenLesson: noopUnsubscribe,
 }
 
 /**

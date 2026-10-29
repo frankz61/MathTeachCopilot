@@ -241,6 +241,70 @@ def check_assertions(
 # --------------------------------------------------------------------------
 
 
+def label_direction(
+    name: str,
+    pts: dict[str, Point],
+    segments: list[list[str]],
+    circles: list[dict[str, Any]],
+) -> tuple[float, float]:
+    """点名该往哪个方向放（单位向量）。
+
+    原来一律「从全部点的重心往外推」。共线的 A、B、C 里，B 几乎就在重心上，
+    往外推的方向沿着线，于是字母正压在线段上——实测「线段、射线、直线」的配图
+    B、C 两个字都被线穿过去。
+
+    现在先看有哪些方向被占了：以这个点为端点的线段指向另一端，线段从这个点
+    中间穿过就两头都占，圆经过这个点就占切线两个方向。在 16 个候选方向里挑
+    离被占方向最远的；离得够远（≥90°）之后才比谁更朝外，最后略偏向上方。
+    """
+    p = pts[name]
+    blocked: list[float] = []
+    for seg in segments:
+        if len(seg) != 2 or seg[0] not in pts or seg[1] not in pts:
+            continue
+        a, b = pts[seg[0]], pts[seg[1]]
+        if name == seg[0]:
+            blocked.append(math.atan2(b[1] - p[1], b[0] - p[0]))
+        elif name == seg[1]:
+            blocked.append(math.atan2(a[1] - p[1], a[0] - p[0]))
+        else:
+            # 点在线段内部（共线且在两端之间）：两个方向都被线占着
+            ab = _length(a, b)
+            if ab and abs(_length(a, p) + _length(p, b) - ab) < ab * 1e-6:
+                t = math.atan2(b[1] - a[1], b[0] - a[0])
+                blocked += [t, t + math.pi]
+    for c in circles:
+        center = pts.get(c.get("center", ""))
+        if center is None:
+            continue
+        r = float(c["radius"]) if "radius" in c else (
+            _length(center, pts[c["through"]]) if c.get("through") in pts else None
+        )
+        if r and abs(_length(center, p) - r) < r * 1e-6:
+            t = math.atan2(p[1] - center[1], p[0] - center[0]) + math.pi / 2
+            blocked += [t, t + math.pi]
+
+    cx = sum(q[0] for q in pts.values()) / len(pts)
+    cy = sum(q[1] for q in pts.values()) / len(pts)
+    ox, oy = p[0] - cx, p[1] - cy
+    on = math.hypot(ox, oy)
+
+    def gap(t: float) -> float:
+        if not blocked:
+            return math.pi
+        return min(abs((t - b + math.pi) % (2 * math.pi) - math.pi) for b in blocked)
+
+    best, best_score = (0.0, 1.0), -math.inf
+    for k in range(16):
+        t = 2 * math.pi * k / 16
+        u = (math.cos(t), math.sin(t))
+        outward = (u[0] * ox + u[1] * oy) / on if on > 1e-9 else 0.0
+        score = min(gap(t), math.pi / 2) + 0.35 * outward + 0.01 * u[1]
+        if score > best_score:
+            best, best_score = u, score
+    return best
+
+
 def render(
     points: dict[str, list[float]],
     segments: list[list[str]] | None = None,
@@ -332,7 +396,7 @@ def render(
         ]
         ax.plot([p[0] for p in corner], [p[1] for p in corner], color="black", linewidth=1.1)
 
-    # 点名：往图形外侧偏移，免得压在线上
+    # 点名：放在离经过这个点的线最远的方向上，见 label_direction
     cx = sum(p[0] for p in pts.values()) / len(pts)
     cy = sum(p[1] for p in pts.values()) / len(pts)
     span = max(
@@ -341,13 +405,10 @@ def render(
         1.0,
     )
     for name, (x, y) in pts.items():
-        dx, dy = x - cx, y - cy
-        n = math.hypot(dx, dy) or 1
+        ux, uy = label_direction(name, pts, segments or [], circles or [])
         off = span * 0.07
         ax.plot([x], [y], marker="o", markersize=3.5, color="black", zorder=3)
-        ax.annotate(
-            name, (x + dx / n * off, y + dy / n * off), ha="center", va="center", fontsize=11
-        )
+        ax.annotate(name, (x + ux * off, y + uy * off), ha="center", va="center", fontsize=11)
 
     # 边上的标注（长度、角度等）
     for i, lb in enumerate(labels or []):

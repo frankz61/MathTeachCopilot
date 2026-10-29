@@ -114,6 +114,9 @@ export function App(): ReactElement {
       })
   }, [])
 
+  // 点了「生成完成」的系统通知：打开那节课
+  useEffect(() => api().onOpenLesson(openLesson), [openLesson])
+
   /** 点教材树上的知识点：没课时就建一个，有就直接打开，然后刷新课时列表 */
   const pickKnowledgePoint = useCallback(
     (textbook: string, grade: string, chapterTitle: string, kp: KnowledgePoint) => {
@@ -196,6 +199,15 @@ export function App(): ReactElement {
       return cur
     })
   }, [])
+
+  /**
+   * 别的课时正在生成：那节课的名字。当前课时自己在生成时不算锁，它有自己的「中断」。
+   * 主进程一次只跑一轮，两节课同时生成会互相拖慢、抢同一个网关，见 main/index.ts
+   */
+  const lockedBy =
+    busyLesson !== null && busyLesson !== current?.meta.id
+      ? (lessons.find((l) => l.id === busyLesson)?.lesson ?? busyLesson)
+      : null
 
   const removeProblem = useCallback(
     (problemId: string) => {
@@ -292,11 +304,15 @@ export function App(): ReactElement {
         </aside>
 
         <main className="pane pane-center">
+          {/* 按课时 id 重建：导出提示、「生成变式中」这类临时状态属于那一节课，
+              不重建的话切到别的课时还挂着上一节的「已导出教学设计」 */}
           <ArtifactPane
+            key={current?.meta.id ?? 'none'}
             lesson={current}
             view={view}
             onView={setView}
             busy={busyLesson === current?.meta.id}
+            lockedBy={lockedBy}
             onVariant={variant}
             onDelete={removeProblem}
           />
@@ -312,6 +328,7 @@ export function App(): ReactElement {
             onAttach={attach}
             onInterrupt={() => void api().interruptAgent()}
             skill={skillOf(view)}
+            lockedBy={lockedBy}
           />
         </aside>
       </div>

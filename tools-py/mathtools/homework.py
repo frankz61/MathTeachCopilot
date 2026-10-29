@@ -23,6 +23,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .mathtext import to_markdown
+
 MARKER = "<!-- 由 problems.json 自动生成，手改正文会被覆盖。固定抬头请写在 preamble.md -->"
 
 TIER_NAMES = {"A": "A 基础", "B": "B 提升", "C": "C 拓展"}
@@ -42,7 +44,7 @@ def option_lines(problem: dict[str, Any]) -> list[str]:
     if not isinstance(options, dict) or not options:
         return []
     keys = sorted(options)
-    parts = [f"{k}. {options[k]}" for k in keys]
+    parts = [f"{k}. {to_markdown(options[k])}" for k in keys]
     if all(len(options[k]) <= 12 for k in keys):
         return ["　　".join(parts), ""]
     return [p + "  " for p in parts] + [""]
@@ -97,7 +99,7 @@ def render(problems: list[dict[str, Any]], title: str, preamble: str = "") -> st
         lines += [f"## {TIER_NAMES[tier]}", ""]
         for p in group:
             n += 1
-            lines += [f"**{n}.** {p.get('stem', '')}", ""]
+            lines += [f"**{n}.** {to_markdown(p.get('stem', ''))}", ""]
             lines += option_lines(p)
             lines += figure_lines(p)
 
