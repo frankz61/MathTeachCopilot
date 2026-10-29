@@ -118,6 +118,7 @@ export function SettingsDialog({
   const [test, setTest] = useState<LlmTestResult | null>(null)
   const [listing, setListing] = useState(false)
   const [imageModels, setImageModels] = useState<ImageModelList | null>(null)
+  const [showImageModel, setShowImageModel] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -270,62 +271,77 @@ export function SettingsDialog({
           </span>
           <input
             value={form.model}
-            placeholder="claude-opus-5　或网关上的别名"
+            placeholder="glmcn/glm-5.3　或网关上的别名"
             spellCheck={false}
             onChange={(e) => set({ model: e.target.value })}
           />
         </label>
 
-        <label className="ed-row">
-          <span className="ed-label">
-            图模型
-            {loaded && <SourceTag from={loaded.source.imageModel} />}
-          </span>
-          <span className="key-field">
-            <input
-              value={form.imageModel}
-              placeholder="留空用默认值"
-              spellCheck={false}
-              onChange={(e) => set({ imageModel: e.target.value })}
-            />
-            <button className="p-act" disabled={listing} onClick={doListImageModels}>
-              {listing ? '查询中…' : '看看有哪些'}
-            </button>
-          </span>
-        </label>
+        {/* 图模型默认收起：只有应用题的情境插图用它，留空就有默认值，
+            绝大多数老师一辈子不用碰。摊在这里只会让人以为非填不可 */}
+        <button
+          className="paths-toggle"
+          aria-expanded={showImageModel}
+          onClick={() => setShowImageModel((v) => !v)}
+        >
+          <span className="chev">▶</span>
+          高级：情境插图用的图模型
+        </button>
 
-        {imageModels && (
-          <div className={imageModels.ok ? 'test-result ok' : 'test-result bad'}>
-            {imageModels.ok && imageModels.models ? (
-              <>
-                <strong>{imageModels.detail}</strong>
-                <div className="model-chips">
-                  {imageModels.models.map((m) => (
-                    <button
-                      key={m}
-                      className={`chip${form.imageModel === m ? ' on' : ''}`}
-                      onClick={() => set({ imageModel: m })}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-                <div className="test-detail">点一个填进上面的框。这些名字和文本模型不通用。</div>
-              </>
-            ) : (
-              <>
-                <strong>没查到图模型</strong>
-                {imageModels.detail && <div className="test-detail">{imageModels.detail}</div>}
-              </>
+        {showImageModel && (
+          <>
+            <label className="ed-row">
+              <span className="ed-label">
+                图模型
+                {loaded && <SourceTag from={loaded.source.imageModel} />}
+              </span>
+              <span className="key-field">
+                <input
+                  value={form.imageModel}
+                  placeholder="留空用默认值"
+                  spellCheck={false}
+                  onChange={(e) => set({ imageModel: e.target.value })}
+                />
+                <button className="p-act" disabled={listing} onClick={doListImageModels}>
+                  {listing ? '查询中…' : '看看有哪些'}
+                </button>
+              </span>
+            </label>
+
+            {imageModels && (
+              <div className={imageModels.ok ? 'test-result ok' : 'test-result bad'}>
+                {imageModels.ok && imageModels.models ? (
+                  <>
+                    <strong>{imageModels.detail}</strong>
+                    <div className="model-chips">
+                      {imageModels.models.map((m) => (
+                        <button
+                          key={m}
+                          className={`chip${form.imageModel === m ? ' on' : ''}`}
+                          onClick={() => set({ imageModel: m })}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="test-detail">点一个填进上面的框。这些名字和文本模型不通用。</div>
+                  </>
+                ) : (
+                  <>
+                    <strong>没查到图模型</strong>
+                    {imageModels.detail && <div className="test-detail">{imageModels.detail}</div>}
+                  </>
+                )}
+              </div>
             )}
-          </div>
-        )}
 
-        <p className="ed-note">
-          图模型只用来画应用题的<strong>生活场景插图</strong>。函数图象、几何图、统计图不走它——
-          那些要和题干条件同源、能被机器校验，由本机的绘图工具画（见 architecture.md §4.20）。
-          出一张插图约 40 秒。
-        </p>
+            <p className="ed-note">
+              图模型只用来画应用题的<strong>生活场景插图</strong>。函数图象、几何图、统计图不走它——
+              那些要和题干条件同源、能被机器校验，由本机的绘图工具画（见 architecture.md §4.20）。
+              出一张插图约 40 秒。
+            </p>
+          </>
+        )}
 
         {warnings.length > 0 && (
           <ul className="ed-errors warn">

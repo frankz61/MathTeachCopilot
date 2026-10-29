@@ -56,7 +56,7 @@ async function main(): Promise<void> {
   const cfg = resolveModelConfig(repoRoot)
   // 「是不是模型的问题」只有一个验法：同一条路径、同一句话，换个别名再跑一遍。
   //   pnpm check:speed auto/claude-sonnet
-  const model = process.argv[2] ?? cfg.model ?? 'claude-opus-5'
+  const model = process.argv[2] ?? cfg.model ?? 'glmcn/glm-5.3'
   if (!cfg.apiKey) {
     console.error('缺少 ANTHROPIC_API_KEY，把它写进仓库根的 .env')
     process.exit(1)

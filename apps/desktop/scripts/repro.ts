@@ -39,7 +39,7 @@ async function main(): Promise<void> {
   const cfg = resolveModelConfig(repoRoot, modelOverride ? { model: modelOverride } : {})
   console.log(`课时  : ${meta.lesson}（${meta.textbook}${meta.grade} · ${meta.chapter}）`)
   console.log(`知识点: ${meta.standardRefs.join(', ') || '(空)'}`)
-  console.log(`模型  : ${cfg.model ?? 'claude-opus-5'} @ ${cfg.baseUrl ?? '官方'}`)
+  console.log(`模型  : ${cfg.model ?? 'glmcn/glm-5.3'} @ ${cfg.baseUrl ?? '官方'}`)
   console.log(`提示词: ${prompt}`)
   console.log('─'.repeat(70))
 

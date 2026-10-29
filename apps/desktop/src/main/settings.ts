@@ -27,8 +27,13 @@ import type {
 } from '@mtc/shared'
 import { loadDotEnv } from './config.js'
 
-/** 模型名没填时用它。和 agent.ts 里的兜底保持一致。 */
-export const DEFAULT_MODEL = 'claude-opus-5'
+/**
+ * 模型名没填时用它，agent.ts 的兜底也引用这一个。
+ *
+ * 这是网关上的别名，不是 Anthropic 官方的模型名——地址留空走官方 API 时它不存在，
+ * 那种情况老师得在设置里自己填模型名。
+ */
+export const DEFAULT_MODEL = 'glmcn/glm-5.3'
 
 /**
  * 图模型没填时用它。

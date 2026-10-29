@@ -462,13 +462,13 @@ function devEffective(s: LlmSettings): EffectiveSettings {
   return {
     settings: {
       ...s,
-      model: s.model.trim() || 'claude-opus-5',
+      model: s.model.trim() || 'glmcn/glm-5.3',
       imageModel: s.imageModel.trim() || 'codex/gpt-5.6-luna',
     },
     source: {
       baseUrl: from(s.baseUrl),
       apiKey: from(s.apiKey),
-      model: from(s.model, 'claude-opus-5'),
+      model: from(s.model, 'glmcn/glm-5.3'),
       imageModel: from(s.imageModel, 'codex/gpt-5.6-luna'),
     },
     configured: s.apiKey.trim().length > 0,

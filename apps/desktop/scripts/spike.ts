@@ -31,7 +31,7 @@ async function main(): Promise<void> {
     console.error('缺少 ANTHROPIC_API_KEY。把它写进仓库根的 .env，参考 .env.example')
     process.exit(1)
   }
-  console.log(`模型：${cfg.model ?? 'claude-opus-5'}  经由 ${cfg.baseUrl ?? '官方 API'}`)
+  console.log(`模型：${cfg.model ?? 'glmcn/glm-5.3'}  经由 ${cfg.baseUrl ?? '官方 API'}`)
 
   const lessonDir = mkdtempSync(path.join(tmpdir(), 'mtc-spike-'))
   console.log(`工作目录：${lessonDir}\n`)

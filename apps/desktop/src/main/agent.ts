@@ -9,6 +9,7 @@ import { skills, type SkillId } from '@mtc/skills'
 import type { AgentEvent, KnowledgePoint, LessonMeta, RunStats } from '@mtc/shared'
 import { mathtoolsServer } from './mcp.js'
 import { buildAgentEnv, resolveModelConfig, type ModelConfig } from './config.js'
+import { DEFAULT_MODEL } from './settings.js'
 
 export interface RunOptions {
   /** 课时目录的绝对路径。Agent 的 cwd 就是它，产物直接落在这里。 */
@@ -243,7 +244,7 @@ export function runAgent(opts: RunOptions): RunHandle {
     options: {
       cwd: opts.lessonDir,
       // 换模型不用改代码，配合中继就是完整的模型可替换接缝
-      model: config.model ?? 'claude-opus-5',
+      model: config.model ?? DEFAULT_MODEL,
 
       // 在 Claude Code 的预设之上追加 Skill 的系统提示，而不是整个替换掉——
       // 预设里的文件编辑纪律（diff、最小改动）正是我们想要的。

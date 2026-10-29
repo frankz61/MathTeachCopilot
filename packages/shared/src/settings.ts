@@ -100,7 +100,7 @@ export function settingsWarnings(s: LlmSettings): string[] {
     out.push('没填 API Key，模型调用会失败')
   }
   if (!s.model.trim()) {
-    out.push('没填模型名，会用默认值 claude-opus-5')
+    out.push('没填模型名，会用默认值 glmcn/glm-5.3')
   }
   // imageModel 不校验「填没填」：留空有默认值，而且大多数课根本用不到插图。
   // 但填成文本模型的名字是**确定错的**——图接口上不存在那个别名，
