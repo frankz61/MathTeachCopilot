@@ -13,7 +13,7 @@ import {
   type Preferences,
 } from '@mtc/shared'
 import { Workspace, loadCurriculum } from '@mtc/workspace'
-import { findKnowledgePoint } from '@mtc/shared'
+import { findKnowledgePoint, usageOf } from '@mtc/shared'
 import { runAgent, type RunHandle } from './agent.js'
 import { LessonWatcher } from './watcher.js'
 import { runPyTool } from './pytool.js'
@@ -228,6 +228,27 @@ function registerIpc(): void {
     return result as ExportResult
   })
 
+  ipcMain.handle(IPC.exportDesign, async (_e, lessonId: string): Promise<ExportResult> => {
+    const lesson = await workspace.readLesson(lessonId).catch(() => null)
+    if (!lesson) return { ok: false, error: `打不开课时 ${lessonId}` }
+    if (!lesson.design) return { ok: false, error: '这个课时还没有教学设计' }
+
+    const picked = await dialog.showSaveDialog(win!, {
+      title: '导出教学设计',
+      defaultPath: `${lesson.meta.lesson}-教学设计.docx`.replace(/[\/:*?"<>|]/g, '-'),
+      filters: [{ name: 'Word 文档', extensions: ['docx'] }],
+    })
+    if (picked.canceled || !picked.filePath) return { ok: false, canceled: true }
+
+    const result = await runPyTool(
+      'export_design',
+      { lessonDir: lesson.dir, outPath: picked.filePath, title: `${lesson.meta.lesson} · 教学设计` },
+      baseDir,
+    )
+    if (result.ok) shell.showItemInFolder(String(result.path))
+    return result as ExportResult
+  })
+
   ipcMain.handle(IPC.windowMinimize, () => win?.minimize())
   ipcMain.handle(IPC.windowToggleMaximize, () => {
     if (!win) return
@@ -326,6 +347,19 @@ function registerIpc(): void {
                 used: used.has(`assets/${name}`),
               }))
             })(),
+            ...(req.skill === 'design'
+              ? {
+                  problemBriefs: lesson.problems.map((p) => {
+                    const stem = p.stem.replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\s+/g, ' ')
+                    const status = p.verify?.status ?? '未验证'
+                    return `${p.id} [${usageOf(p)}·${p.tier}·${p.type}·${status}] ${stem.slice(0, 40)}`
+                  }),
+                  designStages: (lesson.design?.stages ?? []).map((s) => ({
+                    id: s.id,
+                    title: s.title,
+                  })),
+                }
+              : {}),
           }
         : undefined,
       attachments: req.attachments,

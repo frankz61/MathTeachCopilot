@@ -17,6 +17,21 @@ export type Tier = 'A' | 'B' | 'C'
 
 export type ProblemType = '选择' | '填空' | '解答' | '证明' | '作图'
 
+/**
+ * 题目在这节课里拿来干什么。
+ *
+ * 教学设计里的例题、课堂练习、目标检测和课后作业都是题，住在同一个 problems.json 里，
+ * 走同一道验算闸门。区别只在用途：**只有作业题进 homework.md 和「导出 Word」**，
+ * 其余三种由教学设计按 id 引用、随教学设计导出。
+ */
+export type ProblemUsage = '例题' | '练习' | '检测' | '作业'
+export const PROBLEM_USAGES: readonly ProblemUsage[] = ['例题', '练习', '检测', '作业']
+
+/** 缺 usage 的题算作业——加这个字段之前，题目全是作业题 */
+export function usageOf(p: Pick<Problem, 'usage'>): ProblemUsage {
+  return p.usage ?? '作业'
+}
+
 /** 单条验算路径的结果。一道题要过两条独立路径才算绿。 */
 export interface VerifyPath {
   /** 例如 'sympy.solve' / 'substitute-back' */
@@ -93,6 +108,8 @@ export interface Problem {
   knowledgePointIds: string[]
   tier: Tier
   type: ProblemType
+  /** 缺省 = 作业。见 ProblemUsage */
+  usage?: ProblemUsage
   /**
    * 选择题的选项，键是选项号（A/B/C/D）。
    *

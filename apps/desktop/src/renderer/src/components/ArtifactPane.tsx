@@ -1,14 +1,29 @@
 import { useState, type ReactElement } from 'react'
-import { exportableProblems, type Lesson, type Problem, type VerifyStatus } from '@mtc/shared'
+import {
+  exportableProblems,
+  usageOf,
+  type Lesson,
+  type Problem,
+  type VerifyStatus,
+} from '@mtc/shared'
 import { Math } from './Math.js'
 import { HomeworkView } from './HomeworkView.js'
+import { DesignView } from './DesignView.js'
 import { Figure } from './Figure.js'
 import { ProblemEditor } from './ProblemEditor.js'
 import { VariantDialog } from './VariantDialog.js'
 import { api } from '../devFixture.js'
 
+/**
+ * 中栏三个 tab。放在 App 里而不是本组件里：右栏发给 Agent 时要按它选 Skill——
+ * 老师在看教学设计时说「环节二重写」，走的必须是教学设计那套提示词
+ */
+export type ArtifactView = 'design' | 'problems' | 'homework'
+
 interface Props {
   lesson: Lesson | null
+  view: ArtifactView
+  onView: (v: ArtifactView) => void
   /** 出变式：对话框里选好方向和数量后，把拼好的提示词交出去 */
   onVariant: (prompt: string) => void
   onDelete: (problemId: string) => void
@@ -39,8 +54,14 @@ const STATUS_LABEL: Record<Status, string> = {
  * 这里最重要的不是好看，是**验证状态必须一眼可辨**——要像 git 的 unstaged 一样，
  * 老师扫一遍就知道哪些题不能发给学生。见 docs/decision.md 第三节。
  */
-export function ArtifactPane({ lesson, onVariant, onDelete, busy }: Props): ReactElement {
-  const [tab, setTab] = useState<'problems' | 'homework'>('problems')
+export function ArtifactPane({
+  lesson,
+  view: tab,
+  onView: setTab,
+  onVariant,
+  onDelete,
+  busy,
+}: Props): ReactElement {
   const [withAnswers, setWithAnswers] = useState(true)
   const [exporting, setExporting] = useState(false)
   const [exportMsg, setExportMsg] = useState<string | null>(null)
@@ -74,7 +95,10 @@ export function ArtifactPane({ lesson, onVariant, onDelete, busy }: Props): Reac
     )
   }
 
-  const { ok, blocked } = exportableProblems(lesson.problems)
+  // 「导出 Word」导的是分层作业，所以闸门和「可导出」只数作业题。
+  // 例题和课堂练习随教学设计导出，算进来会让「可导出 9」和导出来的 6 道对不上
+  const homeworkProblems = lesson.problems.filter((p) => usageOf(p) === '作业')
+  const { ok, blocked } = exportableProblems(homeworkProblems)
   const tally = lesson.problems.reduce<Record<Status, number>>(
     (acc, p) => {
       const key: Status = p.verify?.status ?? 'unverified'
@@ -88,22 +112,49 @@ export function ArtifactPane({ lesson, onVariant, onDelete, busy }: Props): Reac
     <>
       <div className="toolbar">
         <button
+          className={tab === 'design' ? 'tab active' : 'tab'}
+          onClick={() => setTab('design')}
+        >
+          教学设计
+        </button>
+        <button
           className={tab === 'problems' ? 'tab active' : 'tab'}
           onClick={() => setTab('problems')}
         >
-          problems.json
+          题目
           <span className="count tabular">{lesson.problems.length}</span>
         </button>
         <button
           className={tab === 'homework' ? 'tab active' : 'tab'}
           onClick={() => setTab('homework')}
         >
-          homework.md
+          作业
         </button>
 
         <span className="spacer" />
 
-        {ok.length > 0 && (
+        {tab === 'design' && lesson.design && (
+          <button
+            className="export-btn"
+            disabled={exporting}
+            title="导出为 Word，引用的题内嵌其中，公式可编辑"
+            onClick={() => {
+              setExporting(true)
+              setExportMsg(null)
+              void api()
+                .exportDesign(lesson.meta.id)
+                .then((r) => {
+                  if (r.canceled) return
+                  setExportMsg(r.ok ? '已导出教学设计' : `导出失败：${r.error ?? '未知原因'}`)
+                })
+                .finally(() => setExporting(false))
+            }}
+          >
+            {exporting ? '导出中…' : '导出 Word'}
+          </button>
+        )}
+
+        {tab !== 'design' && ok.length > 0 && (
           <>
             <label className="opt" title="不勾选则只导出题面，适合直接印给学生">
               <input
@@ -142,10 +193,10 @@ export function ArtifactPane({ lesson, onVariant, onDelete, busy }: Props): Reac
       </div>
 
       {/* 汇总单独一条：工具栏里放不下（中栏只有 500 多像素，tab + 导出控件已经占满） */}
-      {lesson.problems.length > 0 && (
+      {tab !== 'design' && lesson.problems.length > 0 && (
         <div className="status-strip tabular">
           <span>
-            可导出 <b>{ok.length}</b> / {lesson.problems.length}
+            作业可导出 <b>{ok.length}</b> / {homeworkProblems.length}
           </span>
           <i className="divider" />
           {(['green', 'yellow', 'red', 'unverified'] as const)
@@ -177,7 +228,7 @@ export function ArtifactPane({ lesson, onVariant, onDelete, busy }: Props): Reac
         </div>
       )}
 
-      {blocked.length > 0 && (
+      {tab !== 'design' && blocked.length > 0 && (
         <div className="gate-warning">
           <strong>{blocked.length} 道题不会被导出</strong>
           <span>{blocked.map((b) => `${b.problem.id} ${b.reason}`).join('；')}</span>
@@ -186,7 +237,15 @@ export function ArtifactPane({ lesson, onVariant, onDelete, busy }: Props): Reac
 
       <div className="artifact-body">
         <div className="artifact-inner">
-          {tab === 'problems' ? (
+          {tab === 'design' ? (
+            lesson.design ? (
+              <DesignView design={lesson.design} problems={lesson.problems} lessonId={lesson.meta.id} />
+            ) : (
+              <p className="empty">
+                还没有教学设计。在右栏说「写这节课的教学设计」，或先拍一页教材传上去。
+              </p>
+            )
+          ) : tab === 'problems' ? (
             lesson.problems.length === 0 ? (
               <p className="empty">还没有题目。在右栏让 Agent 出一组。</p>
             ) : (
@@ -247,6 +306,8 @@ function ProblemCard({
         <span className="p-index">#{index}</span>
         <span className={`tier tier-${problem.tier}`}>{problem.tier}</span>
         <span className="p-type">{problem.type}</span>
+        {/* 作业是常态不标；例题/练习/检测要标出来，老师才知道它为什么不在作业纸上 */}
+        {usageOf(problem) !== '作业' && <span className="p-usage">{usageOf(problem)}</span>}
         <span className="spacer" />
         <span className={`badge badge-${status}`}>
           <i className={`dot dot-${status}`} />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
-import type { AgentEvent, ConversationTurn, RunStats } from '@mtc/shared'
+import type { AgentEvent, ConversationTurn, RunStats, SkillKind } from '@mtc/shared'
 import { Lightbox } from './Lightbox.js'
 
 interface Props {
@@ -12,14 +12,28 @@ interface Props {
   /** 把一张图片存进课时目录，返回相对路径 */
   onAttach: (file: File) => Promise<string | null>
   onInterrupt: () => void
+  /** 这一轮会走哪个 Skill。跟着中栏的 tab 走，快捷提问和输入框提示随之切换 */
+  skill: SkillKind
 }
 
 /** 老师会说的话，不是程序员的 slash command。见 docs/grok.md 第七节。 */
-const QUICK_ASKS = [
-  '出 8 道分层作业：基础 4 / 提升 3 / 拓展 1',
-  '第 3 题太难了，换一道同知识点简单些的',
-  '按现在的题再各出一道同源变式，数字换掉',
-]
+const QUICK_ASKS: Record<SkillKind, string[]> = {
+  problems: [
+    '出 8 道分层作业：基础 4 / 提升 3 / 拓展 1',
+    '第 3 题太难了，换一道同知识点简单些的',
+    '按现在的题再各出一道同源变式，数字换掉',
+  ],
+  design: [
+    '写这节课的教学设计',
+    '环节二的问题太直白了，重写成能引发讨论的问题串',
+    '加一个目标检测环节，出两道检测题',
+  ],
+}
+
+const PLACEHOLDER: Record<SkillKind, string> = {
+  problems: '说说这节课要留什么作业…',
+  design: '说说这节课想怎么上，或拍一页教材传上来…',
+}
 
 function turnClass(t: ConversationTurn): string {
   if (t.ok === null) return 'turn-pending'
@@ -49,6 +63,7 @@ export function AgentPane({
   onRun,
   onAttach,
   onInterrupt,
+  skill,
 }: Props): ReactElement {
   const [input, setInput] = useState('')
   const [pending, setPending] = useState<{ ref: string; name: string; url: string }[]>([])
@@ -138,7 +153,7 @@ export function AgentPane({
             <p className="quick-hint">
               {disabled ? '先选一个课时' : history.length > 0 ? '或者试试：' : '试试这些：'}
             </p>
-            {QUICK_ASKS.map((q) => (
+            {QUICK_ASKS[skill].map((q) => (
               <button key={q} disabled={disabled} onClick={() => submit(q)}>
                 {q}
               </button>
@@ -197,7 +212,7 @@ export function AgentPane({
         <textarea
           value={input}
           disabled={disabled || busy}
-          placeholder={disabled ? '先选一个课时' : '说说这节课要留什么作业…'}
+          placeholder={disabled ? '先选一个课时' : PLACEHOLDER[skill]}
           onChange={(e) => setInput(e.target.value)}
           onPaste={(e) => {
             const files = [...e.clipboardData.items]

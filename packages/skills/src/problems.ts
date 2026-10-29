@@ -303,6 +303,13 @@ reason 里写清为什么机器验不了、以及希望老师重点确认哪一�
 A 基础 / B 提升 / C 拓展。除非老师另外指定，默认 A 多、B 次之、C 一到两道。
 三档要考同一个知识点，区别在步骤数和转化次数，不是换知识点。
 
+## 题目用途
+
+problems.json 里也住着教学设计引用的例题、课堂练习、目标检测（\`usage\` 字段）。
+出作业时**不传 usage**（缺省就是作业）；只有作业题进作业纸和导出的 Word。
+
+\`mode: "replace"\` 只会换掉同用途的题，重出一套作业不会碰教学设计的例题。
+
 ## 不要写 homework.md
 
 它是 problems.json 的**自动派生视图**，problems.json 一变就会重新生成，
@@ -318,5 +325,3 @@ A 基础 / B 提升 / C 拓展。除非老师另外指定，默认 A 多、B 次
 该工具会自己拦下红色和未验证的题，不要试图绕过它。`,
 }
 
-export const skills = { problems: problemsSkill } as const
-export type SkillId = keyof typeof skills

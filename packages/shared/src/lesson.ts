@@ -3,6 +3,7 @@
  * 文件是唯一事实来源，没有数据库。
  */
 import type { Problem } from './problem.js'
+import type { TeachingDesign } from './design.js'
 
 export type LessonStatus = '未开始' | '备课中' | '已定稿'
 
@@ -27,6 +28,8 @@ export interface Lesson {
   problems: Problem[]
   /** homework.md，没有则为 null */
   homework: string | null
+  /** design.json，还没写教学设计则为 null */
+  design: TeachingDesign | null
   /** assets/ 下的文件名 */
   assets: string[]
   /** 这个课时的提问历史，新的在后 */
@@ -59,6 +62,7 @@ export const LESSON_FILES = {
   meta: 'meta.json',
   problems: 'problems.json',
   homework: 'homework.md',
+  design: 'design.json',
   assets: 'assets',
   conversation: 'conversation.json',
 } as const

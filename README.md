@@ -41,7 +41,7 @@ assets/ 里已有的图）拼进提示词 → Agent 出题 → 每道题经 `sav
 重新生成 homework.md → 推 UI 刷新。**刷新只认文件监听，不信 Agent 的自述**——
 done 时还会核对题目数，没变化就报失败。
 
-### Python 工具层的 7 个 MCP 工具
+### Python 工具层的 8 个 MCP 工具
 
 | 工具 | 职责 |
 |---|---|
@@ -49,6 +49,7 @@ done 时还会核对题目数，没变化就报失败。
 | `verify_algebra` | CAS 验算：解方程 / 恒等变形 / 求值，每种走两条独立路径 |
 | `verify_answer_shape` | 答案「好不好看」：整数解、判别式完全平方、比例可约 |
 | `save_problems` | 写 problems.json 的**唯一入口**：校验结构 + 强制重跑验算 |
+| `save_design` | 写 design.json 的**唯一入口**：引用的题必须存在、每个环节要有设计意图、每条目标要有环节落实 |
 | `render_figure` | 函数图象 / 数轴 / 几何 / 统计图 → SVG；几何图按 asserts 实算校验 |
 | `render_illustration` | 生活场景插图 → PNG（生图模型，不可校验，带关键词拦截） |
 | `export_docx` | Markdown + LaTeX → docx（OMML 公式），自带导出闸门 |
@@ -72,8 +73,9 @@ done 时还会核对题目数，没变化就报失败。
 ~/MathTeachCopilot/
 └── 人教九上/25-一元二次方程/02-2-公式法/
     ├── meta.json           # 教材 / 年级 / 章 / 课时 / 知识点 id / 状态
-    ├── problems.json       # 题目对象（含 check 规格与验证戳）——唯一事实来源
-    ├── homework.md         # 分层作业，problems.json 的派生视图，自动重生成
+    ├── problems.json       # 题目对象（含 check 规格与验证戳、用途：例题/练习/检测/作业）——唯一事实来源
+    ├── design.json         # 教学设计，题只按 id 引用 problems.json；只能经 save_design 写
+    ├── homework.md         # 分层作业，只收用途为「作业」的题，自动重生成
     ├── preamble.md         # 老师要的固定抬头（姓名 / 班级），模板不会被覆盖
     ├── conversation.json   # 会话历史（只增不删，留最近 200 轮，带产出增量）
     └── assets/             # 题目插图 SVG / PNG、上传的照片与截图
@@ -355,7 +357,7 @@ apps/desktop/        Electron 客户端
 packages/
   shared/            共享类型：题目对象、课时、IPC 契约、设置、教材树
   workspace/         课时文件夹读写（Workspace 类）+ 教材树加载
-  skills/            Skill 定义：系统提示 + 工具白/黑名单（第一版只有 problems）
+  skills/            Skill 定义：系统提示 + 工具白/黑名单（problems 出题 / design 教学设计，按中栏 tab 选）
 tools-py/            Python 工具层：server.py 是 MCP 入口，cli.py 供主进程直调
   mathtools/           verify / store / figure / geometry / charts / illustration /
                        export / homework / curriculum 九个模块

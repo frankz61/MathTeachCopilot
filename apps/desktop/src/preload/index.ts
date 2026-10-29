@@ -26,6 +26,7 @@ const api: MtcApi = {
   saveAttachment: (lessonId: string, fileName: string, dataUri: string) =>
     ipcRenderer.invoke(IPC.saveAttachment, lessonId, fileName, dataUri),
   exportDocx: (req: ExportRequest) => ipcRenderer.invoke(IPC.exportDocx, req),
+  exportDesign: (lessonId: string) => ipcRenderer.invoke(IPC.exportDesign, lessonId),
   deleteProblem: (lessonId: string, problemId: string) =>
     ipcRenderer.invoke(IPC.deleteProblem, lessonId, problemId),
   updateProblem: (lessonId: string, problem: Problem) =>

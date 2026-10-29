@@ -22,8 +22,9 @@ from typing import Any
 # 脚本目录不会自动进 sys.path，不加这一行打包后 import 不到 mathtools。
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from mathtools import design as design_mod
 from mathtools.export import export_docx
-from mathtools.homework import regenerate
+from mathtools.homework import homework_only, regenerate
 from mathtools.store import save_problems
 
 
@@ -39,13 +40,18 @@ def cmd_export(req: dict[str, Any]) -> dict[str, Any]:
         return {"ok": False, "error": f"problems.json 解析失败：{e}"}
 
     return export_docx(
-        problems,
+        # 「导出 Word」导的是分层作业。例题和课堂练习随教学设计导出
+        homework_only(problems),
         req["outPath"],
         title=req.get("title") or "分层作业",
         with_answers=bool(req.get("withAnswers", True)),
         # 题干里的 ![](assets/xxx.svg) 是相对课时目录的，pandoc 要靠这个找到图
         resource_dir=str(lesson_dir),
     )
+
+
+def cmd_export_design(req: dict[str, Any]) -> dict[str, Any]:
+    return design_mod.export_docx(req["lessonDir"], req["outPath"], req.get("title") or "教学设计")
 
 
 def cmd_homework(req: dict[str, Any]) -> dict[str, Any]:
@@ -84,6 +90,7 @@ def cmd_update_problem(req: dict[str, Any]) -> dict[str, Any]:
 
 COMMANDS = {
     "export": cmd_export,
+    "export_design": cmd_export_design,
     "homework": cmd_homework,
     "update_problem": cmd_update_problem,
 }

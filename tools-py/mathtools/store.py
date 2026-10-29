@@ -36,6 +36,15 @@ from .verify import (
 TIERS = {"A", "B", "C"}
 CHECK_KINDS = {"solve", "identity", "evaluate", "manual", "choice"}
 TYPES = {"选择", "填空", "解答", "证明", "作图"}
+# 题目在这节课里拿来干什么。缺省是「作业」——加这个字段之前的题全是作业题。
+# 只有作业题进 homework.md 和「导出 Word」；例题、练习、检测由教学设计引用。
+USAGES = ("例题", "练习", "检测", "作业")
+DEFAULT_USAGE = "作业"
+
+
+def usage_of(p: dict[str, Any]) -> str:
+    u = p.get("usage")
+    return u if u in USAGES else DEFAULT_USAGE
 REQUIRED = ("id", "stem", "answer", "solution", "tier", "type", "check")
 
 
@@ -62,6 +71,8 @@ def _validate(p: dict[str, Any], index: int) -> list[str]:
         errs.append(f"{where}的 tier 必须是 A/B/C 之一，收到 {p['tier']!r}")
     if p["type"] not in TYPES:
         errs.append(f"{where}的 type 必须是 {'/'.join(sorted(TYPES))} 之一，收到 {p['type']!r}")
+    if "usage" in p and p["usage"] not in USAGES:
+        errs.append(f"{where}的 usage 必须是 {'/'.join(USAGES)} 之一，收到 {p['usage']!r}")
 
     seed = p.get("variantSeed")
     if seed is not None and not isinstance(seed, dict):
@@ -209,7 +220,7 @@ def save_problems(
 
     三种模式：
 
-      replace      整体覆盖（Agent 重出一整卷）
+      replace      覆盖**同用途**的题（Agent 重出一整卷作业）
       append       保留已有的，接在后面（出变式、分批提交）
       replace_one  只替换 id 相同的那一道（**老师改题**）
 
@@ -234,7 +245,8 @@ def save_problems(
     lesson_dir = Path(out_path).parent
 
     existing: list[dict[str, Any]] = []
-    if mode in ("append", "replace_one"):
+    # replace 也要读旧文件：它只覆盖这一批题所属用途的那几类，别的原样保留
+    if mode in ("append", "replace_one", "replace"):
         try:
             loaded = json.loads(Path(out_path).read_text(encoding="utf-8"))
             existing = loaded if isinstance(loaded, list) else []
@@ -293,6 +305,7 @@ def save_problems(
         record["knowledgePointIds"] = p.get("knowledgePointIds", [])
         record["variantSeed"] = p.get("variantSeed")
         record["source"] = p.get("source", "generated")
+        record["usage"] = usage_of(p)
         record["createdAt"] = p.get("createdAt") or result.checkedAt
         record["verify"] = asdict(result)  # 由本模块写，不采信模型提交的内容
         out.append(record)
@@ -315,7 +328,10 @@ def save_problems(
         if not any(p.get("id") == edited.get("id") for p in existing):
             final.append(edited)
     else:
-        final = out
+        # 只换掉同用途的题。整卷覆盖的话，「重出一套作业」会把教学设计引用的
+        # 例题和课堂练习一并清掉，教学设计里就全是断掉的引用
+        replaced = {usage_of(p) for p in out}
+        final = [p for p in existing if usage_of(p) not in replaced] + out
 
     path = Path(out_path)
     path.parent.mkdir(parents=True, exist_ok=True)

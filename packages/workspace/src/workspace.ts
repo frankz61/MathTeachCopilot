@@ -15,6 +15,7 @@ import {
   type Lesson,
   type LessonMeta,
   type Problem,
+  type TeachingDesign,
 } from '@mtc/shared'
 
 /** Windows 文件名不允许的字符，外加会让路径出歧义的点和空格结尾 */
@@ -78,7 +79,17 @@ export class Workspace {
     const conversation =
       (await this.readJson<ConversationTurn[]>(path.join(dir, LESSON_FILES.conversation))) ?? []
 
-    return { meta: { ...meta, id: lessonId }, problems, homework, assets, conversation, dir }
+    const design = await this.readJson<TeachingDesign>(path.join(dir, LESSON_FILES.design))
+
+    return {
+      meta: { ...meta, id: lessonId },
+      problems,
+      homework,
+      design,
+      assets,
+      conversation,
+      dir,
+    }
   }
 
   /**

@@ -27,6 +27,7 @@ from mcp.server.mcpserver import MCPServer
 
 from mathtools import charts as charts_mod
 from mathtools import curriculum as curriculum_mod
+from mathtools import design as design_mod
 from mathtools import export as export_mod
 from mathtools import figure as figure_mod
 from mathtools import geometry as geometry_mod
@@ -182,6 +183,9 @@ def save_problems(
       answer        答案
       solution      **分步解析，字符串数组，一步一项**，至少 2 步。不要写成一整段
       tier          "A" | "B" | "C"
+      usage         "例题" | "练习" | "检测" | "作业"，不传就是作业。
+                    **只有作业题进作业纸和导出的 Word。** 例题、课堂练习、目标检测
+                    是给教学设计引用的，出这几类时一定要写明
       type          "选择" | "填空" | "解答" | "证明" | "作图"
                     **默认要混着出**，不要一整卷都是解答题
       options       选择题的选项 {"A": "...", "B": "...", ...}，非选择题不传。
@@ -231,7 +235,8 @@ def save_problems(
     但证明题、几何题用 manual 是正当的，不要为了凑绿色而回避这些题型。
 
     **mode**：
-      "replace"（默认）整体覆盖 problems.json
+      "replace"（默认）覆盖与这批题**同用途**的题，其他用途的原样保留
+                 ——重出一套作业不会清掉教学设计引用的例题
       "append"   保留已有的题，只把新题接在后面 —— 出变式、补题都用这个
 
     **一次别提交太多。** 3 道题的参数就可能被截断，导致整轮重来。
@@ -242,6 +247,56 @@ def save_problems(
     结构有问题会在 errors 里逐条指出，照着改再提交即可。
     """
     return store_mod.save_problems(problems, out_path, mode)
+
+
+@server.tool()
+def save_design(
+    out_path: str,
+    design: dict[str, Any] | None = None,
+    stage: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """把教学设计写进 design.json。**这是写这个文件的唯一方式**，不要用 Write。
+
+    design 和 stage 二选一：
+
+      design   整份提交。第一次写、或老师要推倒重来时用
+      stage    只替换 id 相同的那个环节。老师说「环节三重写」时用这个，
+               **不要整份重交**——别的环节往往是他已经认可了的
+
+    design 的结构：
+
+      content          教学内容，如「章首页，线段、射线、直线」
+      learnerAnalysis  学情分析：学生已经会什么、哪里会卡住（用上常见错因和前置知识点）
+      objectives       教学目标 [{"id": "o1", "text": "在具体情境中抽象出……发展抽象能力"}]
+      keyPoints        教学重点，字符串数组
+      difficulties     教学难点，字符串数组
+      path             教学路径，一行文字，如「小学经验 → 观察图形抽象概念 → 表示 → 关系」
+      intro            导入语，老师开口的第一段话
+      stages           教学环节，见下
+      boardPlan        板书设计，可空
+
+    每个环节：
+
+      {"id": "s2", "title": "创设情境，形成概念", "objectiveIds": ["o2"],
+       "blocks": [
+         {"kind": "问题", "text": "你能在图中发现我们熟知的图形吗？"},
+         {"kind": "追问", "text": "为什么琴弦可以看作线段？"},
+         {"kind": "师生活动", "text": "学生独立思考后交流……"},
+         {"kind": "题目", "problemId": "e1"},
+         {"kind": "设计意图", "text": "让学生从现实情境中抽象出……"}
+       ]}
+
+    块的 kind：问题、追问、情境、师生活动、讲解、过渡语、评价语、说明、设计意图，
+    以及 **题目**（配 problemId）。问题和追问的编号由界面生成，text 里不要写「问题1」。
+
+    **例题、练习、目标检测不要写成文字块。** 先用 save_problems 存进 problems.json
+    （usage 写 例题 / 练习 / 检测），再在这里用 {"kind": "题目", "problemId": ...} 引用。
+    写成文字的题没过验算——那正是这个产品不允许的。
+
+    会被拒收的情况（照着 errors 改了再交）：引用的题不存在、某个环节没有设计意图、
+    某条教学目标没有任何环节落实、块的 kind 不认识。
+    """
+    return design_mod.save_design(out_path, design, stage)
 
 
 @server.tool()

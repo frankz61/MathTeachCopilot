@@ -15,6 +15,7 @@ import type {
   Lesson,
   LessonMeta,
   LlmSettings,
+  TeachingDesign,
   MtcApi,
   Preferences,
   SettingsSource,
@@ -41,8 +42,68 @@ const green = (paths: [string, string][]): Lesson['problems'][number]['verify'] 
   log: '',
 })
 
+/**
+ * 演示用的教学设计。内容是为演示写的，不取自任何教参——
+ * 结构照北师版《教学设计与指导》的体例，验的是界面能不能把它摆清楚：
+ * 问题连续编号、追问逐题重编、题目块渲染成内嵌题卡、引用断了要显眼。
+ */
+const design: TeachingDesign = {
+  content: '一元二次方程的求根公式，用公式法解一元二次方程。',
+  learnerAnalysis:
+    '学生刚学过配方法，能对具体方程配方，但对含字母系数的式子配方还不熟练；' +
+    '常见错误是代入公式前没把方程化成一般形式，导致 $b$、$c$ 的符号取错。',
+  objectives: [
+    { id: 'o1', text: '经历由配方法推导求根公式的过程，发展推理能力。' },
+    { id: 'o2', text: '会用公式法解一元二次方程，体会判别式与根的情况的关系。' },
+  ],
+  keyPoints: ['用公式法解一元二次方程'],
+  difficulties: ['求根公式的推导'],
+  path: '配方法回顾 → 字母系数配方 → 求根公式 → 判别式 → 应用',
+  intro: '上节课我们用配方法解了几个方程，每次都要重新配一遍。能不能一劳永逸？',
+  stages: [
+    {
+      id: 's1',
+      title: '回顾旧知，提出问题',
+      objectiveIds: ['o1'],
+      blocks: [
+        { kind: '问题', text: '用配方法解方程 $2x^{2}-4x-1=0$，说说每一步在做什么。' },
+        { kind: '师生活动', text: '学生独立完成，一名学生板演，教师引导归纳配方的四个步骤。' },
+        { kind: '追问', text: '如果系数换成字母 $a$、$b$、$c$，这四步还能照做吗？' },
+        { kind: '设计意图', text: '从具体到一般，为推导求根公式做铺垫。' },
+      ],
+    },
+    {
+      id: 's2',
+      title: '推导公式，理解判别式',
+      objectiveIds: ['o1', 'o2'],
+      blocks: [
+        { kind: '问题', text: '对 $ax^{2}+bx+c=0\\,(a\\neq 0)$ 配方，你能得到什么？' },
+        { kind: '追问', text: '为什么要讨论 $b^{2}-4ac$ 的正负？' },
+        { kind: '追问', text: '$b^{2}-4ac=0$ 时，两个根是什么关系？' },
+        { kind: '题目', problemId: 'c1' },
+        { kind: '设计意图', text: '让学生自己发现判别式，而不是直接告诉他们。' },
+      ],
+    },
+    {
+      id: 's3',
+      title: '例题示范，规范步骤',
+      objectiveIds: ['o2'],
+      blocks: [
+        { kind: '题目', problemId: 'p1' },
+        { kind: '说明', text: '强调先化为一般形式，再写出 $a$、$b$、$c$ 的值。' },
+        // 故意引用一道不存在的题：界面要能把断掉的引用标出来
+        { kind: '题目', problemId: 'gone' },
+        { kind: '设计意图', text: '规范书写格式，规避符号错误。' },
+      ],
+    },
+  ],
+  boardPlan: '',
+  updatedAt: '2026-10-28T12:00:00Z',
+}
+
 const lesson: Lesson = {
   meta,
+  design,
   dir: 'C:/Users/demo/MathTeachCopilot/人教九上/25-一元二次方程/02-2-公式法',
   assets: [],
   conversation: [
@@ -81,6 +142,8 @@ const lesson: Lesson = {
       knowledgePointIds: ['rj-tp-25-03'],
       tier: 'A',
       type: '解答',
+      // 演示用途：这道是教学设计里的例题，不进作业纸
+      usage: '例题',
       verify: green([
         ['sympy.solve', "解集一致：['2', '3']"],
         ['substitute-back', '全部根代回为 0'],
@@ -106,6 +169,7 @@ const lesson: Lesson = {
       knowledgePointIds: ['rj-tp-25-03'],
       tier: 'A',
       type: '选择',
+      usage: '练习',
       check: { kind: 'choice', correct: 'B', basis: { kind: 'manual', reason: '根的情况判断，需教师确认表述' } },
       verify: {
         status: 'yellow',
@@ -469,6 +533,7 @@ export const devApi: MtcApi = {
       problems: lesson.problems.slice(0, 2),
       conversation: [],
       homework: null,
+      design: null,
     }
   },
   loadCurriculum: async () =>
@@ -485,6 +550,7 @@ export const devApi: MtcApi = {
   readFigure: async () => null,
   saveAttachment: async (_id, name) => `assets/upload-demo-${name}`,
   exportDocx: async () => ({ ok: false, error: '浏览器里没有文件系统，导出请在应用里试' }),
+  exportDesign: async () => ({ ok: false, error: '浏览器里没有文件系统，导出请在应用里试' }),
   deleteProblem: async () => {},
   updateProblem: async () => ({ ok: true }),
   setLessonStatus: async () => {},
@@ -561,6 +627,7 @@ const STUBS: MtcApi = {
   readFigure: rejecting('readFigure'),
   saveAttachment: rejecting('saveAttachment'),
   exportDocx: rejecting('exportDocx'),
+  exportDesign: rejecting('exportDesign'),
   deleteProblem: rejecting('deleteProblem'),
   updateProblem: rejecting('updateProblem'),
   setLessonStatus: rejecting('setLessonStatus'),

@@ -67,7 +67,16 @@ def figure_lines(problem: dict[str, Any]) -> list[str]:
 EXPORTABLE = {"green", "yellow"}
 
 
+def homework_only(problems: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """只留作业题。例题、练习、检测是课上用的，由教学设计引用，不该印进作业纸。
+
+    没有 usage 字段的算作业：加这个字段之前，题目全是作业题。
+    """
+    return [p for p in problems if p.get("usage", "作业") == "作业"]
+
+
 def render(problems: list[dict[str, Any]], title: str, preamble: str = "") -> str:
+    problems = homework_only(problems)
     usable = [
         p for p in problems if (p.get("verify") or {}).get("status") in EXPORTABLE
     ]

@@ -8,14 +8,18 @@ import type {
   LessonMeta,
   Preferences,
   Problem,
+  SkillKind,
   UpdateState,
 } from '@mtc/shared'
 import { LessonPane } from './components/LessonPane.js'
-import { ArtifactPane } from './components/ArtifactPane.js'
+import { ArtifactPane, type ArtifactView } from './components/ArtifactPane.js'
 import { AgentPane } from './components/AgentPane.js'
 import { SettingsDialog } from './components/SettingsDialog.js'
 import { WindowControls } from './components/WindowControls.js'
 import { api, isDevFixture } from './devFixture.js'
+
+/** 教学设计 tab 走教学设计 Skill，题目和作业 tab 走出题 Skill */
+const skillOf = (v: ArtifactView): SkillKind => (v === 'design' ? 'design' : 'problems')
 
 /**
  * 三栏。左=教材树与课时，中=产物，右=Agent。
@@ -37,6 +41,8 @@ export function App(): ReactElement {
   /** null = 还没读到。读到之前不弹设置窗，否则每次启动都闪一下。 */
   const [settings, setSettings] = useState<EffectiveSettings | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  /** 中栏看的是哪个 tab。右栏按它选 Skill：看教学设计时说的话交给教学设计 */
+  const [view, setView] = useState<ArtifactView>('design')
   /** 教材版本。左栏的教材树和课时列表都只显示这一版 */
   const [prefs, setPrefs] = useState<Preferences | null>(null)
   /** 更新状态。启动时主进程静默查 + 后台下，这里只负责把进展亮出来 */
@@ -130,7 +136,7 @@ export function App(): ReactElement {
       setBusyLesson(lessonId)
       setEventsByLesson((prev) => ({ ...prev, [lessonId]: [] }))
       void api()
-        .runAgent({ lessonId, skill: 'problems', prompt, attachments })
+        .runAgent({ lessonId, skill: skillOf(view), prompt, attachments })
         .catch((err: unknown) => {
           // 不 catch 的话：主进程在发出任何事件前抛错时，这个 promise 静默 reject，
           // busy 永远卡在 true —— 之后所有按钮都是禁用的，表现就是「按钮没用」。
@@ -142,7 +148,7 @@ export function App(): ReactElement {
           setBusyLesson((cur) => (cur === lessonId ? null : cur))
         })
     },
-    [current],
+    [current, view],
   )
 
   /**
@@ -152,6 +158,7 @@ export function App(): ReactElement {
    * 提示词里带上原题的关键信息，Agent 就不用先去读一遍 problems.json。
    */
   /** 变式的提示词由 VariantDialog 拼好（老师选了数量、方向、分层），这里只管发 */
+  // 「出变式」只在题目 tab 的卡片上有，那时 view 已是 problems，走的就是出题 Skill
   const variant = useCallback((prompt: string) => run(prompt), [run])
 
   /** 把一张图存进课时目录，交给 Agent 用 Read 看 */
@@ -283,6 +290,8 @@ export function App(): ReactElement {
         <main className="pane pane-center">
           <ArtifactPane
             lesson={current}
+            view={view}
+            onView={setView}
             busy={busyLesson === current?.meta.id}
             onVariant={variant}
             onDelete={removeProblem}
@@ -298,6 +307,7 @@ export function App(): ReactElement {
             onRun={run}
             onAttach={attach}
             onInterrupt={() => void api().interruptAgent()}
+            skill={skillOf(view)}
           />
         </aside>
       </div>

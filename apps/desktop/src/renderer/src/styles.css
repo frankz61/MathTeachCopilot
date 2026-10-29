@@ -2050,3 +2050,150 @@ kbd {
   color: var(--c-accent);
   font-weight: 550;
 }
+
+/* ==========================================================================
+   教学设计视图。版式照《教学设计与指导》：栏目名是小标签，问题用强调色块，
+   设计意图退一级（样例书里是蓝色楷体）——一眼分得出谁在说话、哪句是给老师看的。
+   仍然只用一个强调色，验证状态点之外不加新颜色。
+   ========================================================================== */
+
+.design {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  line-height: 1.75;
+}
+
+.d-section-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-2);
+  letter-spacing: 0.08em;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.d-section p {
+  margin: 4px 0;
+}
+
+.design-list {
+  margin: 0;
+  padding-left: 1.4em;
+}
+
+.design-path {
+  color: var(--c-text-2);
+}
+
+.d-stage {
+  margin-top: 14px;
+}
+
+.d-stage-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.d-stage-no {
+  color: var(--c-accent);
+}
+
+.d-objs {
+  margin-left: auto;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--c-text-3);
+}
+
+.d-block {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 6px 0;
+}
+
+.d-tag {
+  flex: none;
+  font-size: 11.5px;
+  line-height: 1.6;
+  padding: 0 6px;
+  border-radius: var(--r-sm);
+  background: var(--c-gray-bg);
+  color: var(--c-text-2);
+  white-space: nowrap;
+}
+
+.d-tag-问题,
+.d-tag-导入语 {
+  background: var(--c-accent);
+  color: #fff;
+}
+
+.d-tag-追问 {
+  background: var(--c-accent-soft);
+  color: var(--c-accent);
+}
+
+/* 设计意图是写给老师自己看的，退一级，和课堂上说的话区分开 */
+.d-kind-设计意图 {
+  padding-left: 10px;
+  border-left: 2px solid var(--c-accent-soft);
+  color: var(--c-text-2);
+  font-size: 13px;
+}
+
+.d-problem {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--c-border);
+  border-left-width: 3px;
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+}
+
+.d-problem.status-green {
+  border-left-color: var(--c-green-line);
+}
+
+.d-problem.status-yellow {
+  border-left-color: var(--c-amber-line);
+}
+
+.d-problem.status-red,
+.d-problem.status-unverified {
+  border-left-color: var(--c-red-line);
+}
+
+.d-problem.missing {
+  border-style: dashed;
+  border-left-color: var(--c-red-line);
+  color: var(--c-red);
+  background: var(--c-red-bg);
+  font-size: 13px;
+}
+
+.d-problem-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.d-problem-head .d-tag-题目 {
+  background: var(--c-accent-soft);
+  color: var(--c-accent);
+}
+
+.p-usage {
+  font-size: 11.5px;
+  padding: 0 6px;
+  border-radius: var(--r-sm);
+  background: var(--c-accent-soft);
+  color: var(--c-accent);
+}

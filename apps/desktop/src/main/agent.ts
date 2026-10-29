@@ -50,6 +50,13 @@ export interface LessonContext {
    * 没有一道引用它。工作区里这样的孤儿图有 4 张。见 architecture.md §4.21。
    */
   figures?: { name: string; used: boolean }[]
+  /**
+   * 现有题目的一行摘要。只给教学设计：它要按 id 引用例题和作业题，
+   * 不给的话它看不见已经有什么，只会再出一道一样的
+   */
+  problemBriefs?: string[]
+  /** 现有教学设计的环节（id 与标题）。改单个环节时它要知道 id */
+  designStages?: { id: string; title: string }[]
 }
 
 /**
@@ -125,6 +132,21 @@ function buildPrompt(
       '',
     )
   }
+  if (lesson.problemBriefs) {
+    lines.push('<已有题目>')
+    lines.push(...(lesson.problemBriefs.length > 0 ? lesson.problemBriefs : ['(还没有题)']))
+    lines.push('</已有题目>', '')
+  }
+  if (lesson.designStages) {
+    if (lesson.designStages.length > 0) {
+      lines.push('<已有教学设计的环节>')
+      for (const s of lesson.designStages) lines.push(`${s.id} ${s.title}`)
+      lines.push('</已有教学设计的环节>')
+      lines.push('老师只要改其中一个环节时，用 save_design 的 stage 参数，id 照抄上面的。', '')
+    } else {
+      lines.push('这节课还没有教学设计。', '')
+    }
+  }
   if (attachments.length > 0) lines.push(...attachmentLines(attachments), '')
   lines.push('<老师说>', prompt, '</老师说>')
   return lines.join('\n')
@@ -168,6 +190,15 @@ async function countProblems(lessonDir: string): Promise<number> {
     return Array.isArray(parsed) ? parsed.length : 0
   } catch {
     return 0
+  }
+}
+
+/** design.json 的原文，读不到就是空串。教学设计一轮有没有产出，看它变没变 */
+async function readDesign(lessonDir: string): Promise<string> {
+  try {
+    return await readFile(path.join(lessonDir, 'design.json'), 'utf-8')
+  } catch {
+    return ''
   }
 }
 
@@ -252,6 +283,7 @@ export function runAgent(opts: RunOptions): RunHandle {
 
   const done = (async () => {
     const before = await countProblems(opts.lessonDir)
+    const designBefore = await readDesign(opts.lessonDir)
     try {
       for await (const message of q) {
         if (message.type === 'system' && message.subtype === 'init') {
@@ -311,6 +343,25 @@ export function runAgent(opts: RunOptions): RunHandle {
           // 「开始出三道题并写入」，一道也没写，而 result 仍然是 success——
           // UI 于是显示一个绿色的成功框，老师以为成好了。核对一下文件再说。
           const after = await countProblems(opts.lessonDir)
+          if (opts.skillId === 'design') {
+            // 教学设计这一轮可能只改了一个环节、一道题没加，所以看 design.json 变没变。
+            // 和出题同一个理由：result 是 success 不代表真写了
+            const changed = (await readDesign(opts.lessonDir)) !== designBefore
+            onEvent(
+              changed
+                ? { type: 'done', ok: true, summary: message.result, stats: statsOf(message) }
+                : {
+                    type: 'done',
+                    ok: false,
+                    summary:
+                      `这一轮教学设计没有任何改动（design.json 没变）。\n` +
+                      `模型说：${message.result.trim().slice(0, 160)}\n` +
+                      `换个更具体的说法再试，比如「把环节二重写，多加两个追问」。`,
+                    stats: statsOf(message),
+                  },
+            )
+            continue
+          }
           if (after === before) {
             onEvent({
               type: 'done',

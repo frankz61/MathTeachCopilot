@@ -172,3 +172,11 @@ class Test健壮性:
     def test_render不依赖文件系统(self) -> None:
         text = render([_p("p1")], "标题", "抬头")
         assert "标题" in text and "抬头" in text
+
+
+def test_例题和练习不进作业纸() -> None:
+    md = render([_p("e1", usage="例题"), _p("x1", usage="练习"), _p("h1")], "T")
+    assert "第 h1 题" in md
+    assert "第 e1 题" not in md and "第 x1 题" not in md
+    # 没进作业纸的是课上用的题，不是验算没过——不能报成「未通过验算」
+    assert "未通过验算" not in md

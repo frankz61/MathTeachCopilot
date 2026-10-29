@@ -293,3 +293,24 @@ class Test老师改题:
         out = self._file(tmp_path, [_p(id="a")])
         r = save_problems([_p(id="a"), _p(id="b")], out, mode="replace_one")
         assert not r["ok"] and any("一次只能" in e for e in r["errors"])
+
+
+class Test用途:
+    """usage 字段：教学设计引用的例题/练习和作业题住在同一个 problems.json 里。"""
+
+    def test_缺省用途是作业(self, tmp_path: Path) -> None:
+        out = tmp_path / "problems.json"
+        save_problems([_p()], str(out))
+        assert json.loads(out.read_text(encoding="utf-8"))[0]["usage"] == "作业"
+
+    def test_不认识的用途被拒收(self, tmp_path: Path) -> None:
+        r = save_problems([_p(usage="随堂")], str(tmp_path / "problems.json"))
+        assert not r["ok"]
+        assert any("usage" in e for e in r["errors"])
+
+    def test_重出作业不会清掉例题(self, tmp_path: Path) -> None:
+        out = tmp_path / "problems.json"
+        save_problems([_p(id="e1", usage="例题"), _p(id="h1")], str(out))
+        save_problems([_p(id="h2")], str(out), mode="replace")
+        ids = [p["id"] for p in json.loads(out.read_text(encoding="utf-8"))]
+        assert ids == ["e1", "h2"]

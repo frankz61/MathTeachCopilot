@@ -1,5 +1,13 @@
 import { useState, type ReactElement } from 'react'
-import type { Problem, ProblemCheck, ProblemType, Tier } from '@mtc/shared'
+import {
+  PROBLEM_USAGES,
+  usageOf,
+  type Problem,
+  type ProblemCheck,
+  type ProblemType,
+  type ProblemUsage,
+  type Tier,
+} from '@mtc/shared'
 import { api } from '../devFixture.js'
 
 /**
@@ -30,6 +38,7 @@ export function ProblemEditor({
   const [answer, setAnswer] = useState(problem.answer)
   const [solution, setSolution] = useState(problem.solution.join('\n'))
   const [tier, setTier] = useState<Tier>(problem.tier)
+  const [usage, setUsage] = useState<ProblemUsage>(usageOf(problem))
   // 题型必须能改：闸门要求 type="选择" 和 check.kind="choice" 一一对应，
   // 只能改 check 不能改 type 的话，在这里选「选择题」保存必然失败。
   const [type, setType] = useState<ProblemType>(problem.type)
@@ -65,6 +74,7 @@ export function ProblemEditor({
         .filter(Boolean),
       tier,
       type,
+      usage,
       check,
       options: Object.keys(options).length > 0 ? options : undefined,
     }
@@ -113,6 +123,18 @@ export function ProblemEditor({
           <option value="A">A 基础</option>
           <option value="B">B 提升</option>
           <option value="C">C 拓展</option>
+        </select>
+      </label>
+
+      {/* 用途决定这道题去哪：只有作业进作业纸，例题/练习/检测由教学设计引用 */}
+      <label className="ed-row">
+        <span className="ed-label">用途</span>
+        <select value={usage} onChange={(e) => setUsage(e.target.value as ProblemUsage)}>
+          {PROBLEM_USAGES.map((u) => (
+            <option key={u} value={u}>
+              {u}
+            </option>
+          ))}
         </select>
       </label>
 

@@ -18,6 +18,7 @@ export const IPC = {
   readFigure: 'workspace:readFigure',
   saveAttachment: 'workspace:saveAttachment',
   exportDocx: 'workspace:exportDocx',
+  exportDesign: 'workspace:exportDesign',
   deleteProblem: 'workspace:deleteProblem',
   updateProblem: 'workspace:updateProblem',
   setLessonStatus: 'workspace:setLessonStatus',
@@ -102,6 +103,8 @@ export interface UpdateProblemResult {
   rejected?: { id: string; reason: string }[]
 }
 
+export type SkillKind = 'problems' | 'design'
+
 export interface AgentRunRequest {
   /** 课时目录相对工作区根的路径，agent 的 cwd 就是它 */
   lessonId: string
@@ -112,8 +115,8 @@ export interface AgentRunRequest {
    * 图片因此成为工作区的一部分——能被当成题目配图复用、能导出、老师也能直接打开。
    */
   attachments?: string[]
-  /** 走哪个 Skill。第一版只有 problems */
-  skill: 'problems'
+  /** 走哪个 Skill。界面按中栏当前的 tab 选：教学设计 tab 走 design，其余走 problems */
+  skill: SkillKind
   prompt: string
 }
 
@@ -161,6 +164,8 @@ export interface MtcApi {
   saveAttachment(lessonId: string, fileName: string, dataUri: string): Promise<string | null>
   /** 导出 Word。会弹保存对话框；红色和未验证的题由 Python 层的闸门拦下。 */
   exportDocx(req: ExportRequest): Promise<ExportResult>
+  /** 导出教学设计为 Word。引用的题照样内嵌，公式可编辑 */
+  exportDesign(lessonId: string): Promise<ExportResult>
   /** 剔除一道题。老师的判断优先于 Agent 的产出。 */
   deleteProblem(lessonId: string, problemId: string): Promise<void>
   /**
