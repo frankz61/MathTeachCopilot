@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import { useEffect, useMemo, useState, type ReactElement, type ReactNode } from 'react'
 import {
   allKnowledgePoints,
   type Curriculum,
@@ -25,6 +25,57 @@ interface Props {
   ) => void
 }
 
+/** 搜索词：按空白切开、去空、转小写。多个词要同时命中（「函数 图象」比「函数」窄） */
+function termsOf(query: string): string[] {
+  return query.trim().toLowerCase().split(/\s+/).filter(Boolean)
+}
+
+/**
+ * 按关键字裁剪教材树。
+ *
+ * 只有一条规则：**知识点**拿「教材 年级 各级章节名 知识点名 内容摘要」拼起来去比，
+ * 所有词都命中才留下；章节留下与否只看它底下还剩没剩知识点。
+ * 于是搜章名会留下整章，搜知识点只留那几个，搜「七年级 方程」会落到七年级的方程章——
+ * 不用给「章名命中」「知识点命中」各写一套。
+ */
+function filterNodes(nodes: CurriculumNode[], terms: string[], context: string): CurriculumNode[] {
+  const out: CurriculumNode[] = []
+  for (const n of nodes) {
+    const here = `${context} ${n.title}`
+    const kps = (n.knowledgePoints ?? []).filter((k) => {
+      const hay = `${here} ${k.title} ${k.desc ?? ''}`.toLowerCase()
+      return terms.every((t) => hay.includes(t))
+    })
+    const children = filterNodes(n.children ?? [], terms, here)
+    if (kps.length > 0 || children.length > 0) {
+      out.push({ ...n, knowledgePoints: kps, children })
+    }
+  }
+  return out
+}
+
+/** 把命中的词标出来。教材树很密，不标的话老师得自己在每行里找为什么它被留下 */
+function highlight(text: string, terms: string[]): ReactNode {
+  if (terms.length === 0) return text
+  const lower = text.toLowerCase()
+  const marks: boolean[] = new Array(text.length).fill(false)
+  for (const t of terms) {
+    for (let i = lower.indexOf(t); i !== -1; i = lower.indexOf(t, i + 1)) {
+      for (let j = i; j < i + t.length; j++) marks[j] = true
+    }
+  }
+  const parts: ReactNode[] = []
+  let i = 0
+  while (i < text.length) {
+    let j = i
+    while (j < text.length && marks[j] === marks[i]) j++
+    const seg = text.slice(i, j)
+    parts.push(marks[i] ? <mark key={i}>{seg}</mark> : seg)
+    i = j
+  }
+  return parts
+}
+
 /**
  * 左栏分两段，上教材下课时。
  *
@@ -46,6 +97,21 @@ export function LessonPane({
 }: Props): ReactElement {
   const [booksOpen, setBooksOpen] = useState(false)
   const [openBooks, setOpenBooks] = useState<Set<string>>(new Set())
+  const [query, setQuery] = useState('')
+  const terms = useMemo(() => termsOf(query), [query])
+  const searching = terms.length > 0
+
+  // 搜索时整棵树按关键字裁剪；没有搜索词就原样
+  const shown = useMemo(() => {
+    if (!searching) return curricula
+    return curricula
+      .map((c) => ({ ...c, nodes: filterNodes(c.nodes, terms, `${c.textbook} ${c.grade}`) }))
+      .filter((c) => c.nodes.length > 0)
+  }, [curricula, terms, searching])
+  const hits = useMemo(
+    () => shown.reduce((n, c) => n + allKnowledgePoints(c.nodes).length, 0),
+    [shown],
+  )
 
   // 打开某个课时时，自动展开它所属的那一册（但不自动掀开整个教材区）
   useEffect(() => {
@@ -92,12 +158,34 @@ export function LessonPane({
             {curricula.length} 套 · {totalKp}
           </span>
         </button>
+        {/* 搜索框在滚动区外面：往下翻的时候它不该被卷走 */}
+        {booksOpen && curricula.length > 0 && (
+          <div className="tree-search">
+            <input
+              type="search"
+              value={query}
+              placeholder="搜知识点或章节，如「一元二次」「七年级 方程」"
+              spellCheck={false}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setQuery('')
+              }}
+            />
+            {searching && (
+              <span className="tree-search-count tabular">{hits} 个</span>
+            )}
+          </div>
+        )}
         {booksOpen && (
           <div className="section-body">
             {curricula.length === 0 && <p className="empty">curriculum/ 下没有教材数据</p>}
-            {curricula.map((c) => {
+            {searching && shown.length === 0 && (
+              <p className="empty">没有匹配「{query.trim()}」的知识点</p>
+            )}
+            {shown.map((c) => {
               const key = `${c.textbook}|${c.grade}`
-              const open = openBooks.has(key)
+              // 搜索时把命中的全摊开：结果本来就少，再让老师一层层点开就白搜了
+              const open = searching || openBooks.has(key)
               return (
                 <div key={key} className="book">
                   <button
@@ -123,6 +211,7 @@ export function LessonPane({
                           node={n}
                           chapterTitle={n.title}
                           existing={existing}
+                          terms={terms}
                           onPick={(kp, chapterTitle) =>
                             onPickKnowledgePoint(c.textbook, c.grade, chapterTitle, kp)
                           }
@@ -201,11 +290,14 @@ interface ChapterProps {
   /** 建课时用的章名。三层结构时沿用最外层的章，不用中间的节名 */
   chapterTitle: string
   existing: Set<string>
+  /** 搜索词。非空时强制展开并高亮命中处 */
+  terms: string[]
   onPick: (kp: KnowledgePoint, chapterTitle: string) => void
 }
 
-function ChapterNode({ node, chapterTitle, existing, onPick }: ChapterProps): ReactElement {
-  const [open, setOpen] = useState(false)
+function ChapterNode({ node, chapterTitle, existing, terms, onPick }: ChapterProps): ReactElement {
+  const [userOpen, setOpen] = useState(false)
+  const open = terms.length > 0 || userOpen
   const kps = node.knowledgePoints ?? []
   const children = node.children ?? []
 
@@ -214,7 +306,7 @@ function ChapterNode({ node, chapterTitle, existing, onPick }: ChapterProps): Re
       <button className="chapter-head" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         <span className="chev">▶</span>
         <span className="chapter-name" title={node.desc ?? ''}>
-          {node.title}
+          {highlight(node.title, terms)}
         </span>
         {node.examWeight === 'high' && (
           <span className="hot" title="中考高频">
@@ -232,6 +324,7 @@ function ChapterNode({ node, chapterTitle, existing, onPick }: ChapterProps): Re
               key={k.id}
               kp={k}
               hasLesson={existing.has(k.id)}
+              terms={terms}
               onPick={() => onPick(k, chapterTitle)}
             />
           ))}
@@ -241,6 +334,7 @@ function ChapterNode({ node, chapterTitle, existing, onPick }: ChapterProps): Re
               node={c}
               chapterTitle={chapterTitle}
               existing={existing}
+              terms={terms}
               onPick={onPick}
             />
           ))}
@@ -253,10 +347,12 @@ function ChapterNode({ node, chapterTitle, existing, onPick }: ChapterProps): Re
 function KnowledgePointRow({
   kp,
   hasLesson,
+  terms,
   onPick,
 }: {
   kp: KnowledgePoint
   hasLesson: boolean
+  terms: string[]
   onPick: () => void
 }): ReactElement {
   const tip = [kp.desc, kp.standard, hasLesson ? '已有课时，点击打开' : '点击建一个课时']
@@ -265,7 +361,7 @@ function KnowledgePointRow({
   return (
     <button className="tree-kp" title={tip} onClick={onPick}>
       {hasLesson && <span className="kp-has" title="已有课时" />}
-      <span className="kp-title">{kp.title}</span>
+      <span className="kp-title">{highlight(kp.title, terms)}</span>
       {kp.examWeight === 'high' && <span className="kp-hot" title="中考高频" />}
       {kp.commonErrors.length > 0 && (
         <span className="kp-err tabular" title={`常见错因：\n${kp.commonErrors.join('\n')}`}>
